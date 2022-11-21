@@ -35,6 +35,16 @@ ghc-options:
 
 library:
   source-dirs: src
+  dependencies:
+    - brick
+    - containers
+    - linear
+    - microlens
+    - microlens-th
+    - random
+    - vty
+    - MonadRandom
+
 
 executables:
   edoras-exe:
@@ -46,14 +56,6 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - edoras
-      - brick
-      - containers
-      - linear
-      - microlens
-      - microlens-th
-      - random
-      - vty
-      - MonadRandom
 
 tests:
   edoras-test:
