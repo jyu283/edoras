@@ -1,5 +1,8 @@
-module DinoApp where
+module DinoApp (app, initGame) where
 
+import Brick
+import Brick.Widgets.Border (hBorder, vBorder)
+import Graphics.Vty.Attributes
 import Linear.V2 (V2 (..))
 
 -- The application state type s:
@@ -27,15 +30,40 @@ type Position = V2 Int
 
 type Dino = [Position] -- TODO: Maybe not a list?
 
+type Name = ()
+
 data Game = Game
   { _dino :: Dino,
     _score :: Score
   }
 
--- data App s e n = App
---   { appDraw :: s -> [Widget n],
---     appChooseCursor :: s -> [CursorLocation n] -> Maybe (CursorLocation n),
---     appHandleEvent :: BrickEvent n e -> EventM n s (),
---     appStartEvent :: EventM n s (),
---     appAttrMap :: s -> AttrMap
---   }
+initGame :: IO Game
+initGame = do
+  let g =
+        Game
+          { _dino = [V2 5 0],
+            _score = 0
+          }
+  return g
+
+data Tick = Tick
+
+app :: App Game Tick Name
+app =
+  App
+    { appDraw = drawUI,
+      appChooseCursor = neverShowCursor,
+      appHandleEvent = handleEvent,
+      appStartEvent = return,
+      appAttrMap = const (attrMap defAttr [])
+    }
+
+-- dinoMap :: AttrMap
+-- dinoMap = undefined
+
+-- TODO
+drawUI :: Game -> [Widget Name]
+drawUI _ = [str "Hello," <=> str "World!" <=> hBorder]
+
+handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
+handleEvent = undefined

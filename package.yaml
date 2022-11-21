@@ -57,6 +57,7 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - edoras
+      - brick
 
 tests:
   edoras-test:

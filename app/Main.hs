@@ -1,6 +1,11 @@
 module Main (main) where
 
+import Brick
+import DinoApp (app, initGame)
 import Lib
 
 main :: IO ()
-main = someFunc
+main = do
+  g <- initGame
+  defaultMain app g
+  return ()
