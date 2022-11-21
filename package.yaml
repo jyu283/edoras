@@ -33,6 +33,7 @@ ghc-options:
   - -Wpartial-fields
   - -Wredundant-constraints
 
+# Dependencies mostly copied from dino-brick
 library:
   source-dirs: src
   dependencies:
