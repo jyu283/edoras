@@ -1,9 +1,8 @@
 module DinoApp (app) where
 
-import Emoticon
-
 import Brick
 import Brick.Widgets.Border (hBorder, vBorder)
+import Emoticon
 import Graphics.Vty.Attributes
 import Linear.V2 (V2 (..))
 
@@ -66,11 +65,10 @@ app =
 -- TODO
 drawUI :: Game -> [Widget Name]
 -- drawUI _ = [translateBy (Location (20, 13)) (str Lib.strSmallDino), testWidget, str "Hello," <=> str "World!" <=> hBorder]
-drawUI _ = [translateBy (Location (0, 5)) dino1Widget, translateBy (Location (50, 1+5)) cactus1Widget, translateBy (Location (0, 8+5)) testWidget2]
+drawUI _ = [translateBy (Location (0, 5)) dino1Widget, translateBy (Location (50, 1 + 5)) cactus1Widget, translateBy (Location (0, 8 + 5)) testWidget2]
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent = undefined
-
 
 testWidget2 = vBox [row1, row2, row3, row4, row5]
   where
@@ -79,4 +77,3 @@ testWidget2 = vBox [row1, row2, row3, row4, row5]
     row3 = str "-----------------------------------------------------------------------------------"
     row4 = str "-----------------------------------------------------------------------------------"
     row5 = str "-----------------------------------------------------------------------------------"
-
