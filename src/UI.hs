@@ -41,7 +41,7 @@ drawUI :: Game -> [Widget Name]
 drawUI g =
   [ placeWidget (g ^. dinoPos) dino1Widget,
     placeWidget (g ^. cactusPos) cactus1Widget,
-    placeWidget (V2 0 13) ground1Widget
+    placeWidget (V2 0 25) ground1Widget
   ]
 
 placeWidget :: V2 Int -> Widget Name -> Widget Name
