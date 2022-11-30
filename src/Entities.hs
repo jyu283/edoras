@@ -60,4 +60,7 @@ setDinoMvt :: Game -> Movement -> Game
 setDinoMvt g mvt = g & dinoMvmt .~ mvt
 
 dinoJump :: Game -> Game
-dinoJump g = setDinoMvt g Jumping
+dinoJump g = case g ^. dinoMvmt of
+  Normal -> setDinoMvt g Jumping
+  Ducking -> setDinoMvt g Jumping
+  _other -> g
