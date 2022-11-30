@@ -4,8 +4,8 @@ import Brick
 import Brick.BChan (newBChan, writeBChan)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
-import Dino
 import Emoticon (cactus1Widget, dino1Widget, ground1Widget)
+import Entities
 import qualified Graphics.Vty as V
 import Graphics.Vty.Attributes (defAttr)
 import Lens.Micro ((^.))
@@ -48,6 +48,7 @@ placeWidget :: V2 Int -> Widget Name -> Widget Name
 placeWidget (V2 x y) = translateBy (Location (x, y))
 
 handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
-handleEvent g (AppEvent Tick) = continue $ step g
+handleEvent g (AppEvent Tick) = continue $ refresh g
+handleEvent g (VtyEvent (V.EvKey V.KUp [])) = continue $ dinoJump g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
 handleEvent g _ = continue g

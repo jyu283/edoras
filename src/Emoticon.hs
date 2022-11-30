@@ -95,5 +95,4 @@ getEmoticonWidget emoStr = vBox $ map hBox widgetss
     widgetss = map (\s -> fromRight [] (parseFromString oneLineWidgetP s) ++ [translateBy (Location (10000, 0)) (str " ")]) emoStrs
       where
         -- To ensure that the backgroud of each hBox widget is transparent, at the end of each line, a sufficiently far away "space widget" (str " ") is added. Otherwise, vBox will automatically pad on the right (probably with " " ?) to align all hBoxes, making the right side of the overall widget not transparent.
-
         emoStrs = fromRight [] (parseFromString multiLineP emoStr)
