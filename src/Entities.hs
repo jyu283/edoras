@@ -22,12 +22,21 @@ data Game = Game
 
 makeLenses ''Game -- What's this for?
 
+groundHeight :: Int
+groundHeight = 17
+
+defaultDinoPos :: Pos
+defaultDinoPos = V2 20 groundHeight
+
+dinoJumpPeakHeight :: Int
+dinoJumpPeakHeight = 0
+
 initGame :: IO Game
 initGame = do
   let g =
         Game
-          { _cactusPos = V2 200 18,
-            _dinoPos = V2 20 17,
+          { _cactusPos = V2 200 groundHeight,
+            _dinoPos = defaultDinoPos,
             _dinoMvmt = Normal
           }
   return g
@@ -43,15 +52,24 @@ refreshCactus g = g & cactusPos %~ f
 
 refreshDino :: Game -> Game
 refreshDino g = case g ^. dinoMvmt of
-  Jumping -> if getDinoHeight g == 2 then setDinoMvt g Falling else moveDino g (-1)
-  Falling -> if getDinoHeight g == 17 then setDinoMvt g Normal else moveDino g 1
+  Jumping ->
+    if getDinoHeight g == dinoJumpPeakHeight
+      then setDinoMvt g Falling
+      else moveDino g (-1)
+  Falling ->
+    if getDinoHeight g == groundHeight
+      then setDinoMvt g Normal
+      else moveDino g 1
   _other -> g
 
 moveDino :: Game -> Int -> Game
-moveDino g delta = g & dinoPos .~ V2 20 (getDinoHeight g + delta)
+moveDino g delta = g & dinoPos .~ V2 (getV2x defaultDinoPos) (getDinoHeight g + delta)
 
 getDinoHeight :: Game -> Int
 getDinoHeight g = getV2y (g ^. dinoPos)
+
+getV2x :: V2 Int -> Int
+getV2x (V2 x _) = x
 
 getV2y :: V2 Int -> Int
 getV2y (V2 _ y) = y
