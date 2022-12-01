@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, cactusPos, dinoPos, initGame, dinoJump) where
+module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, initGame, dinoJump) where
 
 import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
@@ -23,7 +23,7 @@ data Game = Game
 makeLenses ''Game -- What's this for?
 
 groundHeight :: Int
-groundHeight = 17
+groundHeight = 27
 
 defaultDinoPos :: Pos
 defaultDinoPos = V2 20 groundHeight
