@@ -4,7 +4,7 @@ import Brick
 import Brick.BChan (newBChan, writeBChan)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
-import Emoticon (cactus1Widget, dino1Widget, ground1Widget)
+import Emoticon (cactus1Widget, dino1Widget, bird1Widget, ground1Widget)
 import Entities
 import qualified Graphics.Vty as V
 import Graphics.Vty.Attributes (defAttr)
@@ -41,6 +41,7 @@ drawUI :: Game -> [Widget Name]
 drawUI g =
   [ placeWidget (g ^. dinoPos) dino1Widget,
     placeWidget (g ^. cactusPos) cactus1Widget,
+    placeWidget (g ^. birdPos) bird1Widget,
     placeWidget (V2 0 (groundHeight + 8)) ground1Widget
   ]
 

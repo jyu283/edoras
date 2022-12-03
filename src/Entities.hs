@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, initGame, dinoJump) where
+module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, birdPos, initGame, dinoJump) where
 
 import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
@@ -15,6 +15,8 @@ data Game = Game
     _cactusPos :: Pos,
     -- | position of dino
     _dinoPos :: Pos,
+    -- | position of bird
+    _birdPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement
   }
@@ -37,18 +39,24 @@ initGame = do
         Game
           { _cactusPos = V2 200 groundHeight,
             _dinoPos = defaultDinoPos,
+            _birdPos = V2 250 8,
             _dinoMvmt = Normal
           }
   return g
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = refreshCactus . refreshDino
+refresh = refreshCactus . refreshDino . refreshBird
 
 refreshCactus :: Game -> Game
 refreshCactus g = g & cactusPos %~ f
   where
     f (V2 x y) = V2 ((x -1) `mod` 200) y
+
+refreshBird :: Game -> Game
+refreshBird g = g & birdPos %~ f
+  where
+    f (V2 x y) = V2 ((x -1) `mod` 300) y
 
 refreshDino :: Game -> Game
 refreshDino g = case g ^. dinoMvmt of
