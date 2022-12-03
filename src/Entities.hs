@@ -15,8 +15,10 @@ data Game = Game
     _cactusPos :: Pos,
     -- | position of dino
     _dinoPos :: Pos,
-    -- | movement of dino
-    _dinoMvmt :: Movement
+    -- | velocity of dino
+    _dinoVelocity :: Int,
+    -- | game ticks
+    _tick :: Int
   }
   deriving (Show)
 
@@ -28,8 +30,14 @@ groundHeight = 27
 defaultDinoPos :: Pos
 defaultDinoPos = V2 20 groundHeight
 
-dinoJumpPeakHeight :: Int
-dinoJumpPeakHeight = 0
+-- dinoJumpPeakHeight :: Int
+-- dinoJumpPeakHeight = 0
+
+dinoJumpInitialVelocity :: Int
+dinoJumpInitialVelocity = -8
+
+gravity :: Int
+gravity = 1
 
 initGame :: IO Game
 initGame = do
@@ -37,13 +45,19 @@ initGame = do
         Game
           { _cactusPos = V2 200 groundHeight,
             _dinoPos = defaultDinoPos,
-            _dinoMvmt = Normal
+            _dinoVelocity = 0,
+            _tick = 0
           }
   return g
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = refreshCactus . refreshDino
+refresh = tickincr . refreshCactus . refreshDino
+
+tickincr :: Game -> Game
+tickincr g = g & tick %~ incr
+  where
+    incr x = x + 1
 
 refreshCactus :: Game -> Game
 refreshCactus g = g & cactusPos %~ f
@@ -51,19 +65,26 @@ refreshCactus g = g & cactusPos %~ f
     f (V2 x y) = V2 ((x -1) `mod` 200) y
 
 refreshDino :: Game -> Game
-refreshDino g = case g ^. dinoMvmt of
-  Jumping ->
-    if getDinoHeight g == dinoJumpPeakHeight
-      then setDinoMvt g Falling
-      else moveDino g (-1)
-  Falling ->
-    if getDinoHeight g == groundHeight
-      then setDinoMvt g Normal
-      else moveDino g 1
-  _other -> g
+refreshDino g =
+  if g ^. tick `mod` 3 == 0
+    then _refreshDino g
+    else g
 
-moveDino :: Game -> Int -> Game
-moveDino g delta = g & dinoPos .~ V2 (getV2x defaultDinoPos) (getDinoHeight g + delta)
+_refreshDino :: Game -> Game
+_refreshDino = moveDino . updateDinoVelocity
+
+moveDino :: Game -> Game
+moveDino g = g & dinoPos .~ V2 (getV2x defaultDinoPos) new_height
+  where
+    new_height = min (getDinoHeight g + (g ^. dinoVelocity)) groundHeight
+
+updateDinoVelocity :: Game -> Game
+updateDinoVelocity g = g & dinoVelocity .~ new_velocity
+  where
+    new_velocity =
+      if getDinoHeight g <= groundHeight
+        then (g ^. dinoVelocity) + gravity
+        else 0
 
 getDinoHeight :: Game -> Int
 getDinoHeight g = getV2y (g ^. dinoPos)
@@ -74,11 +95,5 @@ getV2x (V2 x _) = x
 getV2y :: V2 Int -> Int
 getV2y (V2 _ y) = y
 
-setDinoMvt :: Game -> Movement -> Game
-setDinoMvt g mvt = g & dinoMvmt .~ mvt
-
 dinoJump :: Game -> Game
-dinoJump g = case g ^. dinoMvmt of
-  Normal -> setDinoMvt g Jumping
-  Ducking -> setDinoMvt g Jumping
-  _other -> g
+dinoJump g = g & dinoVelocity .~ dinoJumpInitialVelocity
