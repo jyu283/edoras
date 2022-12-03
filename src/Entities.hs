@@ -30,9 +30,6 @@ groundHeight = 27
 defaultDinoPos :: Pos
 defaultDinoPos = V2 20 groundHeight
 
--- dinoJumpPeakHeight :: Int
--- dinoJumpPeakHeight = 0
-
 dinoJumpInitialVelocity :: Int
 dinoJumpInitialVelocity = -8
 
