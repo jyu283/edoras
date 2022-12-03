@@ -96,4 +96,7 @@ getV2y :: V2 Int -> Int
 getV2y (V2 _ y) = y
 
 dinoJump :: Game -> Game
-dinoJump g = g & dinoVelocity .~ dinoJumpInitialVelocity
+dinoJump g =
+  if getDinoHeight g < groundHeight
+    then g
+    else g & dinoVelocity .~ dinoJumpInitialVelocity
