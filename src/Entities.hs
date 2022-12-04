@@ -1,6 +1,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, cactusPos, dinoPos,dinoWidget, initGame, dinoJump,dinoDuck, dinoNormal) where
+
+module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, birdPos, dinoWidget, initGame, dinoJump, dinoDuck, dinoNormal) where
 
 import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
@@ -18,6 +19,8 @@ data Game = Game
     _cactusPos :: [Pos],
     -- | position of dino
     _dinoPos :: Pos,
+    -- | position of bird
+    _birdPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
@@ -53,6 +56,7 @@ initGame = do
         Game
           { _cactusPos = [V2 groundLength groundHeight],
             _dinoPos = defaultDinoPos,
+            _birdPos = V2 250 8,
             _dinoMvmt = Normal,
             _randGen = mkStdGen 12345,
             _dinoWidget = dino1Widget
@@ -61,7 +65,7 @@ initGame = do
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = refreshCactus . refreshDino
+refresh = refreshCactus . refreshDino . refreshBird
 
 refreshCactus :: Game -> Game
 refreshCactus = moveCactus . deleteCactus . genCactus
@@ -89,6 +93,11 @@ genCactus g
       newPos = (g ^. cactusPos) ++ [V2 (groundLength + newX) groundHeight]
 
 
+
+refreshBird :: Game -> Game
+refreshBird g = g & birdPos %~ f
+  where
+    f (V2 x y) = V2 ((x -1) `mod` 300) y
 
 refreshDino :: Game -> Game
 refreshDino g = case g ^. dinoMvmt of

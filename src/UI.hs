@@ -4,7 +4,7 @@ import Brick
 import Brick.BChan (newBChan, writeBChan)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
-import Emoticon (cactus1Widget, cactus2Widget, dino1DuckWidget, dino1Widget, ground1Widget)
+import Emoticon (cactus1Widget, cactus2Widget, dino1Widget, bird1Widget, ground1Widget,dino1DuckWidget)
 import Entities
 import qualified Graphics.Vty as V
 import Graphics.Vty.Attributes (defAttr)
@@ -42,9 +42,11 @@ app =
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]
-    ++ map (`placeWidget` cactus2Widget) (g ^. cactusPos)
-    ++ [placeWidget (V2 0 (groundHeight + 8)) ground1Widget]
+  [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]  ++
+  map (`placeWidget` cactus2Widget) (g ^. cactusPos) ++
+  [placeWidget (V2 0 (groundHeight + 8)) ground1Widget] ++
+  [placeWidget (g ^. birdPos) bird1Widget]
+
 
 placeWidget :: V2 Int -> Widget Name -> Widget Name
 placeWidget (V2 x y) = translateBy (Location (x, y))

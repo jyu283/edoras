@@ -3,6 +3,7 @@
 module Emoticon
   ( dino1Widget,
     cactus1Widget,
+    bird1Widget,
     cactus2Widget, 
     ground1Widget,
     dino1DuckWidget,
@@ -60,6 +61,24 @@ cactus1Str = "     (((((.    \n     ((,(((    \n     (((((( (##\n     *((((/ ###
 cactus1Widget :: Widget n
 cactus1Widget = getEmoticonWidget cactus1Str
 
+
+-----------------24X8 bird1----------------------------------
+--           ..
+--           #@@
+--           (@@@@@
+--     @@@    /@@@@@@
+-- #&@@@@@&% /@@@@@@@@#
+-- @@@@@@@@@@ *@@@@@@@@@@(
+--       @@@@@@@@@@@@@@@@@
+--             @@@@@@@@@(
+
+bird1Str :: String
+bird1Str = "          ..\n          #@@\n          (@@@@@\n    @@@    /@@@@@@\n#&@@@@@&% /@@@@@@@@#\n@@@@@@@@@@ *@@@@@@@@@@(\n      @@@@@@@@@@@@@@@@@\n            @@@@@@@@@(\n"
+
+bird1Widget :: Widget n
+bird1Widget = getEmoticonWidget bird1Str
+
+
 -----------------29X11 cactus2----------------------------------
 --      .##(           (##.      
 --      (###.      ,  .###(      
@@ -78,7 +97,7 @@ cactus2Str = "     .##(           (##.     \n     (###.      ,  .###(     \n    
 
 cactus2Widget :: Widget n
 cactus2Widget = getEmoticonWidget cactus2Str
-    
+
 ground1Widget :: Widget n
 ground1Widget = vBox [row | _ <- [1 .. 4]]
   where
