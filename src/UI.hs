@@ -38,11 +38,11 @@ app =
     }
 
 -- changeAppDraw :: App -> [Widget Name] -> App
--- changeAppDraw app = app & 
+-- changeAppDraw app = app &
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [placeWidget (g ^. dinoPos) dinoWidget]  ++
+  [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]  ++
   map (`placeWidget` cactus2Widget) (g ^. cactusPos) ++
   [placeWidget (V2 0 (groundHeight + 8)) ground1Widget] ++
   [placeWidget (g ^. birdPos) bird1Widget]
