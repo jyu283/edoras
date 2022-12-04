@@ -5,6 +5,7 @@ module Emoticon
     cactus1Widget,
     cactus2Widget, 
     ground1Widget,
+    dino1DuckWidget,
   )
 where
 
@@ -31,6 +32,17 @@ dino1Str = "            ##.#########\n            ############\n            ####
 dino1Widget :: Widget n
 dino1Widget = getEmoticonWidget dino1Str
 
+----------------- 33X5 dino1----------------------------------
+-- #######################.#########
+--     #############################
+--       #####################////**
+--        #### .##     (((
+--        #      #
+dino1DuckStr :: String
+dino1DuckStr = "#######################.#########\n    #############################\n      #####################////**\n       #### .##     (((          \n       #      #                  "
+
+dino1DuckWidget ::  Widget n
+dino1DuckWidget = getEmoticonWidget dino1DuckStr
 -----------------15X9 cactus1----------------------------------
 --      (((((.
 --      ((,(((

@@ -4,7 +4,7 @@ import Brick
 import Brick.BChan (newBChan, writeBChan)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
-import Emoticon (cactus1Widget, cactus2Widget, dino1Widget, ground1Widget)
+import Emoticon (cactus1Widget, cactus2Widget, dino1Widget, ground1Widget,dino1DuckWidget)
 import Entities
 import qualified Graphics.Vty as V
 import Graphics.Vty.Attributes (defAttr)
@@ -37,11 +37,15 @@ app =
       appAttrMap = const (attrMap defAttr [])
     }
 
+-- changeAppDraw :: App -> [Widget Name] -> App
+-- changeAppDraw app = app & 
+
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [placeWidget (g ^. dinoPos) dino1Widget]  ++
+  [placeWidget (g ^. dinoPos) dinoWidget]  ++
   map (`placeWidget` cactus2Widget) (g ^. cactusPos) ++
   [placeWidget (V2 0 (groundHeight + 8)) ground1Widget]
+
 
 placeWidget :: V2 Int -> Widget Name -> Widget Name
 placeWidget (V2 x y) = translateBy (Location (x, y))
@@ -50,4 +54,6 @@ handleEvent :: Game -> BrickEvent Name Tick -> EventM Name (Next Game)
 handleEvent g (AppEvent Tick) = continue $ refresh g
 handleEvent g (VtyEvent (V.EvKey V.KUp [])) = continue $ dinoJump g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
+handleEvent g (VtyEvent (V.EvKey V.KDown [])) = continue $ dinoDuck g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'z') [])) = continue $ dinoNormal g
 handleEvent g _ = continue g

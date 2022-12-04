@@ -1,11 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, initGame, dinoJump) where
+module Entities (Game, refresh, groundHeight, cactusPos, dinoPos,dinoWidget, initGame, dinoJump,dinoDuck, dinoNormal) where
 
 import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
 import Linear.V2 (V2 (..))
 import System.Random
+import Brick
+import Emoticon (cactus1Widget, dino1Widget, ground1Widget,dino1DuckWidget)
 
 data Movement = Jumping | Falling | Ducking | Normal deriving (Eq, Show)
 
@@ -19,9 +21,11 @@ data Game = Game
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
-    _randGen :: StdGen
+    _randGen :: StdGen,
+    -- | dino widget
+    _dinoWidget :: Widget String
   }
-  deriving (Show)
+  --deriving (Show)
 
 makeLenses ''Game -- What's this for?
 
@@ -50,7 +54,8 @@ initGame = do
           { _cactusPos = [V2 groundLength groundHeight],
             _dinoPos = defaultDinoPos,
             _dinoMvmt = Normal,
-            _randGen = mkStdGen 12345
+            _randGen = mkStdGen 12345,
+            _dinoWidget = dino1Widget
           }
   return g
 
@@ -117,3 +122,21 @@ dinoJump g = case g ^. dinoMvmt of
   Normal -> setDinoMvt g Jumping
   Ducking -> setDinoMvt g Jumping
   _other -> g
+
+setDinoWidgetDuck :: Game -> Game
+setDinoWidgetDuck g  = g & dinoWidget .~ dino1DuckWidget
+
+setDinoWidgetNormal :: Game -> Game
+setDinoWidgetNormal g = g & dinoWidget .~ dino1Widget
+
+setDinoPosDuck :: Game -> Game
+setDinoPosDuck g = g & dinoPos .~ (V2 20 32)
+
+setDinoPosNormal :: Game -> Game
+setDinoPosNormal g = g & dinoPos .~ (V2 20 groundHeight)
+
+dinoDuck :: Game -> Game
+dinoDuck  = setDinoWidgetDuck . setDinoPosDuck
+
+dinoNormal :: Game -> Game
+dinoNormal = setDinoWidgetNormal . setDinoPosNormal
