@@ -3,6 +3,7 @@
 module Emoticon
   ( dino1Widget,
     cactus1Widget,
+    cactus2Widget, 
     ground1Widget,
   )
 where
@@ -47,6 +48,25 @@ cactus1Str = "     (((((.    \n     ((,(((    \n     (((((( (##\n     *((((/ ###
 cactus1Widget :: Widget n
 cactus1Widget = getEmoticonWidget cactus1Str
 
+-----------------29X11 cactus2----------------------------------
+--      .##(           (##.      
+--      (###.      ,  .###(      
+--      (###.     ### .###(      
+-- .##, (###. ##. ### .###( *##, 
+-- .##* (###. ##, ### .###( *##, 
+-- .##* (###. ##,  #######( *##, 
+-- .##(*(###/*##      .####*/##  
+--   /######.         .###(..    
+--      (###.         .###(      
+--      (###.         .###(      
+--      (###.         .###(      
+
+cactus2Str :: String
+cactus2Str = "     .##(           (##.     \n     (###.      ,  .###(     \n     (###.     ### .###(     \n.##, (###. ##. ### .###( *##,\n.##* (###. ##, ### .###( *##,\n.##* (###. ##,  #######( *##,\n.##(*(###/*##      .####*/## \n  /######.         .###(..   \n     (###.         .###(     \n     (###.         .###(     \n     (###.         .###(     "
+
+cactus2Widget :: Widget n
+cactus2Widget = getEmoticonWidget cactus2Str
+    
 ground1Widget :: Widget n
 ground1Widget = vBox [row | _ <- [1 .. 4]]
   where
