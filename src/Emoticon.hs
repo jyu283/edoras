@@ -4,7 +4,9 @@ module Emoticon
   ( dino1Widget,
     cactus1Widget,
     bird1Widget,
+    cactus2Widget, 
     ground1Widget,
+    dino1DuckWidget,
   )
 where
 
@@ -31,6 +33,17 @@ dino1Str = "            ##.#########\n            ############\n            ####
 dino1Widget :: Widget n
 dino1Widget = getEmoticonWidget dino1Str
 
+----------------- 33X5 dino1----------------------------------
+-- #######################.#########
+--     #############################
+--       #####################////**
+--        #### .##     (((
+--        #      #
+dino1DuckStr :: String
+dino1DuckStr = "#######################.#########\n    #############################\n      #####################////**\n       #### .##     (((          \n       #      #                  "
+
+dino1DuckWidget ::  Widget n
+dino1DuckWidget = getEmoticonWidget dino1DuckStr
 -----------------15X9 cactus1----------------------------------
 --      (((((.
 --      ((,(((
@@ -48,6 +61,7 @@ cactus1Str = "     (((((.    \n     ((,(((    \n     (((((( (##\n     *((((/ ###
 cactus1Widget :: Widget n
 cactus1Widget = getEmoticonWidget cactus1Str
 
+
 -----------------24X8 bird1----------------------------------
 --           ..
 --           #@@
@@ -63,6 +77,26 @@ bird1Str = "          ..\n          #@@\n          (@@@@@\n    @@@    /@@@@@@\n#
 
 bird1Widget :: Widget n
 bird1Widget = getEmoticonWidget bird1Str
+
+
+-----------------29X11 cactus2----------------------------------
+--      .##(           (##.      
+--      (###.      ,  .###(      
+--      (###.     ### .###(      
+-- .##, (###. ##. ### .###( *##, 
+-- .##* (###. ##, ### .###( *##, 
+-- .##* (###. ##,  #######( *##, 
+-- .##(*(###/*##      .####*/##  
+--   /######.         .###(..    
+--      (###.         .###(      
+--      (###.         .###(      
+--      (###.         .###(      
+
+cactus2Str :: String
+cactus2Str = "     .##(           (##.     \n     (###.      ,  .###(     \n     (###.     ### .###(     \n.##, (###. ##. ### .###( *##,\n.##* (###. ##, ### .###( *##,\n.##* (###. ##,  #######( *##,\n.##(*(###/*##      .####*/## \n  /######.         .###(..   \n     (###.         .###(     \n     (###.         .###(     \n     (###.         .###(     "
+
+cactus2Widget :: Widget n
+cactus2Widget = getEmoticonWidget cactus2Str
 
 ground1Widget :: Widget n
 ground1Widget = vBox [row | _ <- [1 .. 4]]
