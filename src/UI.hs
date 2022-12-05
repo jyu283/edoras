@@ -11,6 +11,9 @@ import Graphics.Vty.Attributes (defAttr)
 import Lens.Micro ((^.))
 import Linear.V2 (V2 (..))
 
+import Brick.Widgets.Border as B
+import Brick.Widgets.Border.Style as BS
+import Brick.Widgets.Center as C
 data Tick = Tick
 
 type Name = String -- attribute name type
@@ -37,16 +40,20 @@ app =
       appAttrMap = const (attrMap defAttr [])
     }
 
--- changeAppDraw :: App -> [Widget Name] -> App
--- changeAppDraw app = app &
-
 drawUI :: Game -> [Widget Name]
 drawUI g =
+  [hLimit 20 $ vBox [drawScore (g ^. tick)]]  ++
   [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]  ++
   map (`placeWidget` cactus2Widget) (g ^. cactusPos) ++
   [placeWidget (V2 0 (groundHeight + 8)) ground1Widget] ++
   [placeWidget (g ^. birdPos) bird1Widget]
 
+drawScore :: Int -> Widget Name
+drawScore n = withBorderStyle BS.unicodeBold
+  $ B.borderWithLabel (str " Score ")
+  $ C.hCenter
+  $ padAll 1
+  $ str $ show n
 
 placeWidget :: V2 Int -> Widget Name -> Widget Name
 placeWidget (V2 x y) = translateBy (Location (x, y))
