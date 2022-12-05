@@ -1,9 +1,9 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, birdPos, dinoWidget, initGame, dinoJump, dinoDuck, dinoNormal) where
+module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, birdPos, dinoWidget,boardWidget,isOver,initGame, dinoJump, dinoDuck, dinoNormal,changeBoard,gameStart,gameReady) where
 
 import Brick
-import Emoticon (cactus1Widget, dino1DuckWidget, dino1Widget, ground1Widget)
+import Emoticon (cactus1Widget, dino1DuckWidget, dino1Widget, ground1Widget,gameStartWidget,gameOverWidget,normalBoardWidget)
 import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
 import Linear.V2 (V2 (..))
@@ -24,12 +24,18 @@ data Game = Game
     _tick :: Int,
     -- | position of bird
     _birdPos :: Pos,
+    -- | position of board
+    _boardPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
     _randGen :: StdGen,
     -- | dino widget
-    _dinoWidget :: Widget String
+    _dinoWidget :: Widget String,
+    -- | board widget
+    _boardWidget :: Widget String,
+    -- | the state of game 0-ready to start 1 - in the process 2-end
+    _isOver :: Int
   }
 
 --deriving (Show)
@@ -54,6 +60,8 @@ defaultDinoPos = V2 20 groundHeight
 dinoJumpInitialVelocity :: Int
 dinoJumpInitialVelocity = -8
 
+
+
 gravity :: Int
 gravity = 1
 
@@ -68,7 +76,9 @@ initGame = do
             _birdPos = V2 250 8,
             _dinoMvmt = Normal,
             _randGen = mkStdGen 12345,
-            _dinoWidget = dino1Widget
+            _dinoWidget = dino1Widget,
+            _boardWidget = gameStartWidget,
+            _isOver = 0
           }
   return g
 
@@ -82,7 +92,9 @@ tickincr g = g & tick %~ incr
     incr x = x + 1
 
 refreshCactus :: Game -> Game
-refreshCactus = moveCactus . deleteCactus . genCactus
+refreshCactus g
+  |g ^. isOver == 1  = moveCactus (deleteCactus (genCactus g))
+  |otherwise = g
 
 moveCactus :: Game -> Game
 moveCactus g = g & cactusPos %~ map f
@@ -107,9 +119,15 @@ genCactus g
     newPos = (g ^. cactusPos) ++ [V2 (groundLength + newX) groundHeight]
 
 refreshBird :: Game -> Game
-refreshBird g = g & birdPos %~ f
+refreshBird g
+  | g ^. isOver == 1 = g & birdPos %~ f
+  | otherwise = g
   where
     f (V2 x y) = V2 ((x -1) `mod` 300) y
+ 
+--refreshBird g = g & birdPos %~ f
+--  where
+--   f (V2 x y) = V2 ((x -1) `mod` 300) y
 
 refreshDino :: Game -> Game
 refreshDino g =
@@ -165,3 +183,21 @@ dinoDuck = setDinoWidgetDuck . setDinoPosDuck
 
 dinoNormal :: Game -> Game
 dinoNormal = setDinoWidgetNormal . setDinoPosNormal
+
+changeBoard :: Game -> Game
+changeBoard g 
+ | g ^. isOver == 0 =  g & boardWidget .~ normalBoardWidget
+ | g ^. isOver == 1 = g & boardWidget .~ gameOverWidget
+ | g ^. isOver == 2 = g & boardWidget .~ gameStartWidget
+
+changeStateToStart :: Game -> Game
+changeStateToStart g = g & isOver .~ 1
+
+changeStateToReady :: Game -> Game
+changeStateToReady g = g & isOver .~ 0
+
+gameStart :: Game -> Game
+gameStart = changeStateToStart . changeBoard
+
+gameReady :: Game -> Game
+gameReady = changeStateToReady . changeBoard
