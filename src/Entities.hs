@@ -1,21 +1,22 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, cactusPos, dinoPos, birdPos, dinoWidget, initGame, dinoJump, dinoDuck, dinoNormal) where
+module Entities (Game, refresh, groundHeight, obstacleList , dinoPos, birdPos, dinoWidget, initGame, dinoJump, dinoDuck, dinoNormal) where
 
 import Brick
-import Emoticon (cactus1Widget, dino1DuckWidget, dino1Widget, ground1Widget)
+import Emoticon
 import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
 import Linear.V2 (V2 (..))
 import System.Random
 
-data Movement = Ducking | Normal deriving (Eq, Show)
+data Movement = Ducking | Jumping | Normal deriving (Eq, Show)
 
 type Pos = V2 Int
 
 data Game = Game
-  { -- |  position of cactus (maybe a list later)
-    _cactusPos :: [Pos],
+  {
+    -- | a list of obstacles and their positions
+    _obstacleList :: [(Pos, Widget String)],
     -- | position of dino
     _dinoPos :: Pos,
     -- | velocity of dino
@@ -29,7 +30,9 @@ data Game = Game
     -- | psudo random number generator
     _randGen :: StdGen,
     -- | dino widget
-    _dinoWidget :: Widget String
+    _dinoWidget :: Widget String,
+    -- | bird widget
+    _birdWidget :: Widget String
   }
 
 --deriving (Show)
@@ -61,50 +64,71 @@ initGame :: IO Game
 initGame = do
   let g =
         Game
-          { _cactusPos = [V2 groundLength groundHeight],
+          {
+            _obstacleList = [],
             _dinoPos = defaultDinoPos,
             _dinoVelocity = 0,
             _tick = 0,
             _birdPos = V2 250 8,
             _dinoMvmt = Normal,
             _randGen = mkStdGen 12345,
-            _dinoWidget = dino1Widget
+            _dinoWidget = dino1Widget,
+            _birdWidget = bird1Widget
           }
   return g
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = tickincr . refreshCactus . refreshDino . refreshBird
+refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle
 
 tickincr :: Game -> Game
 tickincr g = g & tick %~ incr
   where
     incr x = x + 1
 
-refreshCactus :: Game -> Game
-refreshCactus = moveCactus . deleteCactus . genCactus
-
-moveCactus :: Game -> Game
-moveCactus g = g & cactusPos %~ map f
+refreshDinoWidget :: Game -> Game
+refreshDinoWidget g
+  | (g ^. dinoMvmt) /= Jumping = setRunningDinoWidget g
+  | otherwise = g & dinoWidget .~ dino1Widget
   where
-    f (V2 x y) = V2 (x -1) y
+    setRunningDinoWidget g
+      | (g ^. dinoMvmt == Normal) && (g ^. tick) `mod` 14 < 7 = g & dinoWidget .~ dino2Widget
+      | (g ^. dinoMvmt == Normal) && (g ^. tick) `mod` 14 >= 7 = g & dinoWidget .~ dino3Widget
+      | (g ^. dinoMvmt == Ducking) && (g ^. tick) `mod` 14 < 7 = g & dinoWidget .~ dino1DuckWidget
+      | (g ^. dinoMvmt == Ducking) && (g ^. tick) `mod` 14 >= 7 = g & dinoWidget .~ dino2DuckWidget
+      | otherwise = g & dinoWidget .~ dino1DuckWidget
 
-deleteCactus :: Game -> Game
-deleteCactus g = g & cactusPos %~ f
+refreshObstacle :: Game -> Game
+refreshObstacle = moveObstacle . deleteObstacle . genObstacle
+
+moveObstacle :: Game -> Game
+moveObstacle g = g & obstacleList %~ map f
+  where
+    f (V2 x y, w) = (V2 (x -1) y, w)
+
+deleteObstacle :: Game -> Game
+deleteObstacle g = g & obstacleList %~ f
   where
     f [] = []
-    f posList@((V2 x _) : rest)
+    f obList@((V2 x _, _) : rest)
       | x < 0 = rest
-      | otherwise = posList
+      | otherwise = obList
 
-genCactus :: Game -> Game
-genCactus g
-  | null posList || (getV2x (last posList) < (groundLength - minObstacleDistance)) = g & cactusPos .~ newPos & randGen .~ newGen
+genObstacle :: Game -> Game
+genObstacle g
+  | null obList || (getV2x (fst $ last obList) < (groundLength - minObstacleDistance))
+    = g & obstacleList .~ newObList & randGen .~ newGen
   | otherwise = g
   where
-    posList = g ^. cactusPos
-    (newX, newGen) = randomR (0, maxObstacleDistance - minObstacleDistance) (g ^. randGen)
-    newPos = (g ^. cactusPos) ++ [V2 (groundLength + newX) groundHeight]
+    obList = g ^. obstacleList
+    (newX, tmpGen) = randomR (0, maxObstacleDistance - minObstacleDistance) (g ^. randGen)
+    (widgetIdx, newGen) = randomR (1, 3 :: Int) tmpGen
+    newOb = case widgetIdx of
+      1 -> (V2 (groundLength + newX) groundHeight, cactus1Widget)         -- single cactus
+      2 -> (V2 (groundLength + newX) (groundHeight-4), cactus2Widget)     -- two cacti
+      3 -> (V2 (groundLength + newX) (groundHeight-5), g ^. birdWidget)   -- bird
+      _ -> (V2 (groundLength + newX) groundHeight, cactus1Widget)
+    newObList = (g ^. obstacleList) ++ [newOb]
 
 refreshBird :: Game -> Game
 refreshBird g = g & birdPos %~ f
@@ -113,12 +137,12 @@ refreshBird g = g & birdPos %~ f
 
 refreshDino :: Game -> Game
 refreshDino g =
-  if g ^. tick `mod` 3 == 0
+  if (g ^. tick `mod` 3 == 0) && (g ^. dinoMvmt == Jumping)
     then _refreshDino g
     else g
 
 _refreshDino :: Game -> Game
-_refreshDino = moveDino . updateDinoVelocity
+_refreshDino = moveDino . updateDinoVelocity . updateDinoMvnt
 
 moveDino :: Game -> Game
 moveDino g = g & dinoPos .~ V2 (getV2x defaultDinoPos) new_height
@@ -133,6 +157,11 @@ updateDinoVelocity g = g & dinoVelocity .~ new_velocity
         then (g ^. dinoVelocity) + gravity
         else 0
 
+updateDinoMvnt :: Game -> Game
+updateDinoMvnt g
+  | (g ^. dinoMvmt == Jumping) && (getDinoHeight g == groundHeight) && (g ^. dinoVelocity > 0) = g & dinoMvmt .~ Normal
+  | otherwise = g
+
 getDinoHeight :: Game -> Int
 getDinoHeight g = getV2y (g ^. dinoPos)
 
@@ -146,7 +175,7 @@ dinoJump :: Game -> Game
 dinoJump g =
   if getDinoHeight g < groundHeight
     then g
-    else g & dinoVelocity .~ dinoJumpInitialVelocity
+    else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
 
 setDinoWidgetDuck :: Game -> Game
 setDinoWidgetDuck g = g & dinoWidget .~ dino1DuckWidget
@@ -155,13 +184,14 @@ setDinoWidgetNormal :: Game -> Game
 setDinoWidgetNormal g = g & dinoWidget .~ dino1Widget
 
 setDinoPosDuck :: Game -> Game
-setDinoPosDuck g = g & dinoPos .~ V2 20 32
+setDinoPosDuck g = g & dinoPos .~ V2 20 (groundHeight + 5)
 
 setDinoPosNormal :: Game -> Game
 setDinoPosNormal g = g & dinoPos .~ V2 20 groundHeight
 
 dinoDuck :: Game -> Game
-dinoDuck = setDinoWidgetDuck . setDinoPosDuck
+-- dinoDuck = setDinoWidgetDuck . setDinoPosDuck
+dinoDuck g = setDinoPosDuck (g & dinoMvmt .~ Ducking)
 
 dinoNormal :: Game -> Game
-dinoNormal = setDinoWidgetNormal . setDinoPosNormal
+dinoNormal g = setDinoPosNormal (g & dinoMvmt .~ Normal)

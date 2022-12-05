@@ -43,10 +43,8 @@ app =
 drawUI :: Game -> [Widget Name]
 drawUI g =
   [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]  ++
-  map (`placeWidget` cactus2Widget) (g ^. cactusPos) ++
-  [placeWidget (V2 0 (groundHeight + 8)) ground1Widget] ++
-  [placeWidget (g ^. birdPos) bird1Widget]
-
+  map (uncurry placeWidget) (g ^. obstacleList) ++
+  [placeWidget (V2 0 (groundHeight + 8)) ground1Widget]
 
 placeWidget :: V2 Int -> Widget Name -> Widget Name
 placeWidget (V2 x y) = translateBy (Location (x, y))
