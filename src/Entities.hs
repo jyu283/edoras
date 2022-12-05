@@ -161,10 +161,15 @@ getV2y :: V2 Int -> Int
 getV2y (V2 _ y) = y
 
 dinoJump :: Game -> Game
-dinoJump g =
-  if getDinoHeight g < groundHeight
+dinoJump g
+  | g ^. isOver == 1 = if getDinoHeight g < groundHeight
     then g
     else g & dinoVelocity .~ dinoJumpInitialVelocity
+  |otherwise = g
+--dinoJump g =
+ -- if getDinoHeight g < groundHeight
+ --   then g
+  --  else g & dinoVelocity .~ dinoJumpInitialVelocity
 
 setDinoWidgetDuck :: Game -> Game
 setDinoWidgetDuck g = g & dinoWidget .~ dino1DuckWidget
@@ -179,7 +184,10 @@ setDinoPosNormal :: Game -> Game
 setDinoPosNormal g = g & dinoPos .~ V2 20 groundHeight
 
 dinoDuck :: Game -> Game
-dinoDuck = setDinoWidgetDuck . setDinoPosDuck
+dinoDuck g
+ | g ^. isOver == 1 = setDinoWidgetDuck  (setDinoPosDuck g)
+ | otherwise = g
+
 
 dinoNormal :: Game -> Game
 dinoNormal = setDinoWidgetNormal . setDinoPosNormal
@@ -197,7 +205,10 @@ changeStateToReady :: Game -> Game
 changeStateToReady g = g & isOver .~ 0
 
 gameStart :: Game -> Game
-gameStart = changeStateToStart . changeBoard
+gameStart g
+ | g ^. isOver == 0 = changeStateToStart  (changeBoard g)
+ | otherwise = g
+--gameStart = changeStateToStart . changeBoard
 
 gameReady :: Game -> Game
 gameReady = changeStateToReady . changeBoard
