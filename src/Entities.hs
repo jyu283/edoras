@@ -8,6 +8,7 @@ import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
 import Linear.V2 (V2 (..))
 import System.Random
+import Entities (obstacleList)
 
 data Movement = Ducking | Jumping | Normal deriving (Eq, Show)
 
@@ -79,12 +80,35 @@ initGame = do
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle
+refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
 
 tickincr :: Game -> Game
 tickincr g = g & tick %~ incr
   where
     incr x = x + 1
+
+detectCollision :: Game -> Game
+detectCollision g = 
+  if noHit (g ^. dinoWidget) (g ^. dinoPos) obsWidget obsPos then
+    g
+  else
+    endGame g
+  where
+    obsWidget = getFirstObstacleWidget g
+    obsPos = getFirstObstaclePos g
+
+endGame :: Game -> Game
+endGame g = g
+
+noHit :: Widget String -> Pos -> Widget String -> Pos -> Bool
+noHit w1 p1@(V2 x1 y1) w2 p2@(V2 x2 y2) = 
+  x1 + hSize w1 || x1 > x2 + hSize w1 || y1 + vSize w1 < y2 || y1 > y2 + vSize w2 
+
+getFirstObstaclePos :: Game -> Pos
+getFirstObstaclePos g = fst (head (g ^. obstacleList))
+
+getFirstObstacleWidget :: Game -> Widget String
+getFirstObstacleWidget g = snd (head (g ^. obstacleList))
 
 refreshDinoWidget :: Game -> Game
 refreshDinoWidget g
