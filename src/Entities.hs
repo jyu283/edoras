@@ -99,9 +99,7 @@ newGame =
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh g
-  | g ^. isOver == 1 = tickincr (refreshDinoWidget (refreshDino (refreshObstacle (detectCollision g))))
-  | otherwise = tickincr (refreshDinoWidget (refreshDino (refreshObstacle g)))
+refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
 
 tickincr :: Game -> Game
 tickincr g = case g ^. isOver of
@@ -111,7 +109,7 @@ tickincr g = case g ^. isOver of
   _ -> g
 
 detectCollision :: Game -> Game
-detectCollision g = if null (g ^. obstacleList) then g else detectCollision' g
+detectCollision g = if g ^. isOver == 0 || null (g ^. obstacleList) then g else detectCollision' g
 
 detectCollision' :: Game -> Game
 detectCollision' g =
