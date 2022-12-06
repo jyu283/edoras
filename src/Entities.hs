@@ -79,8 +79,6 @@ defaultDinoPos = V2 20 groundHeight
 dinoJumpInitialVelocity :: Int
 dinoJumpInitialVelocity = -8
 
-
-
 gravity :: Int
 gravity = 1
 
@@ -105,7 +103,6 @@ refresh :: Game -> Game
 refresh g 
   | g ^. isOver == 1 = tickincr  (refreshDinoWidget (refreshDino (refreshObstacle  (detectCollision g))))
   | otherwise = tickincr  (refreshDinoWidget (refreshDino (refreshObstacle   g)))
---refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
 
 tickincr :: Game -> Game
 tickincr g = case g ^. isOver of
@@ -243,9 +240,6 @@ changeBoardToNormal g = g & boardWidget .~ normalBoardWidget
 
 changeBoardToEnd :: Game -> Game
 changeBoardToEnd g = g & boardWidget .~ gameOverWidget
-
-changeBoardToReady :: Game -> Game
-changeBoardToReady g =  g & boardWidget .~ gameStartWidget
 
 changeStateToMove :: Game -> Game
 changeStateToMove g = g & isOver .~ 1
