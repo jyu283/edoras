@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, obstacleList , dinoPos, birdPos, dinoWidget, initGame, dinoJump, dinoDuck, dinoNormal) where
+module Entities (Game, refresh, groundHeight, obstacleList, dinoPos, birdPos, dinoWidget,boardWidget,isOver,initGame, dinoJump, dinoDuck, dinoNormal,changeBoard,gameStart,gameReady) where
 
 import Brick
 import Emoticon
@@ -26,12 +26,18 @@ data Game = Game
     _tick :: Int,
     -- | position of bird
     _birdPos :: Pos,
+    -- | position of board
+    _boardPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
     _randGen :: StdGen,
     -- | dino widget
     _dinoWidget :: Widget String,
+    -- | board widget
+    _boardWidget :: Widget String,
+    -- | the state of game 0-ready to start 1 - in the process 2-end
+    _isOver :: Int,
     -- | bird widget
     _birdWidget :: Widget String
   }
@@ -58,6 +64,8 @@ defaultDinoPos = V2 20 groundHeight
 dinoJumpInitialVelocity :: Int
 dinoJumpInitialVelocity = -8
 
+
+
 gravity :: Int
 gravity = 1
 
@@ -74,6 +82,8 @@ initGame = do
             _dinoMvmt = Normal,
             _randGen = mkStdGen 12345,
             _dinoWidget = dino1Widget,
+            _boardWidget = gameStartWidget,
+            _isOver = 0,
             _birdWidget = bird1Widget
           }
   return g
@@ -123,7 +133,9 @@ refreshDinoWidget g
       | otherwise = g & dinoWidget .~ dino1DuckWidget
 
 refreshObstacle :: Game -> Game
-refreshObstacle = moveObstacle . deleteObstacle . genObstacle
+refreshObstacle g
+ | g ^. isOver == 1  =   moveObstacle (deleteObstacle (genObstacle g))
+ |otherwise = g
 
 moveObstacle :: Game -> Game
 moveObstacle g = g & obstacleList %~ map f
@@ -155,9 +167,15 @@ genObstacle g
     newObList = (g ^. obstacleList) ++ [newOb]
 
 refreshBird :: Game -> Game
-refreshBird g = g & birdPos %~ f
+refreshBird g
+  | g ^. isOver == 1 = g & birdPos %~ f
+  | otherwise = g
   where
     f (V2 x y) = V2 ((x -1) `mod` 300) y
+ 
+--refreshBird g = g & birdPos %~ f
+--  where
+--   f (V2 x y) = V2 ((x -1) `mod` 300) y
 
 refreshDino :: Game -> Game
 refreshDino g =
@@ -196,10 +214,15 @@ getV2y :: V2 Int -> Int
 getV2y (V2 _ y) = y
 
 dinoJump :: Game -> Game
-dinoJump g =
-  if getDinoHeight g < groundHeight
+dinoJump g
+  | g ^. isOver == 1 = if getDinoHeight g < groundHeight
     then g
     else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
+  |otherwise = g
+
+
+
+
 
 setDinoWidgetDuck :: Game -> Game
 setDinoWidgetDuck g = g & dinoWidget .~ dino1DuckWidget
@@ -214,8 +237,35 @@ setDinoPosNormal :: Game -> Game
 setDinoPosNormal g = g & dinoPos .~ V2 20 groundHeight
 
 dinoDuck :: Game -> Game
--- dinoDuck = setDinoWidgetDuck . setDinoPosDuck
-dinoDuck g = setDinoPosDuck (g & dinoMvmt .~ Ducking)
+dinoDuck g
+ | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
+ | otherwise = g
+
 
 dinoNormal :: Game -> Game
 dinoNormal g = setDinoPosNormal (g & dinoMvmt .~ Normal)
+
+changeBoard :: Game -> Game
+changeBoard g 
+ | g ^. isOver == 0 =  g & boardWidget .~ normalBoardWidget
+ | g ^. isOver == 1 = g & boardWidget .~ gameOverWidget
+ | g ^. isOver == 2 = g & boardWidget .~ gameStartWidget
+
+changeStateToStart :: Game -> Game
+changeStateToStart g = g & isOver .~ 1
+
+changeStateToReady :: Game -> Game
+changeStateToReady g = g & isOver .~ 0
+
+gameStart :: Game -> Game
+gameStart g
+ | g ^. isOver == 0 = changeStateToStart  (changeBoard g)
+ | otherwise = g
+--gameStart = changeStateToStart . changeBoard
+
+gameReady :: Game -> Game
+gameReady = changeStateToReady . changeBoard
+
+
+
+
