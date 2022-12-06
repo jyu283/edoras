@@ -54,6 +54,5 @@ handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
 handleEvent g (VtyEvent (V.EvKey V.KDown [])) = continue $ dinoDuck g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'z') [])) = continue $ dinoNormal g
 handleEvent g (VtyEvent (V.EvKey (V.KEnter) [])) = continue $ gameStart g
-handleEvent g (VtyEvent (V.EvKey (V.KChar 'x') [])) = continue $ gameReady g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'x') [])) = continue $ gameRestart g
 handleEvent g _ = continue g
-

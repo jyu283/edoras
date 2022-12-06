@@ -91,11 +91,11 @@ dino1DuckWidget = getEmoticonWidget dino1DuckStr
 
 -------------------- game over board  --------------------------------------
 -- -----------------------------------------
--- |  Game over, press Enter to restart    |
+-- |  Game over, press X to restart        |
 -- |                                       |
 -- -----------------------------------------
 gameOverStr :: String
-gameOverStr = "-----------------------------------------\n|  Game over, press Enter to restart    |\n|                                       |\n-----------------------------------------"
+gameOverStr = "-----------------------------------------\n|  Game over, press X to restart        |\n|                                       |\n-----------------------------------------"
 
 gameOverWidget :: Widget n
 gameOverWidget = getEmoticonWidget gameOverStr
