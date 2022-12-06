@@ -4,7 +4,7 @@ import Brick
 import Brick.BChan (newBChan, writeBChan)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
-import Emoticon (cactus1Widget, cactus2Widget, dino1Widget, bird1Widget, ground1Widget,dino1DuckWidget)
+import Emoticon (cactus1Widget, cactus2Widget, dino1Widget, bird1Widget, ground1Widget,dino1DuckWidget,gameStartWidget,gameOverWidget,normalBoardWidget)
 import Entities
 import qualified Graphics.Vty as V
 import Graphics.Vty.Attributes (defAttr)
@@ -44,9 +44,9 @@ drawUI :: Game -> [Widget Name]
 drawUI g =
   [hLimit 20 $ vBox [drawScore (g ^. tick)]]  ++
   [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]  ++
-  map (`placeWidget` cactus2Widget) (g ^. cactusPos) ++
-  [placeWidget (V2 0 (groundHeight + 8)) ground1Widget] ++
-  [placeWidget (g ^. birdPos) bird1Widget]
+  [placeWidget (V2 50 4) (g ^. boardWidget)] ++
+  map (uncurry placeWidget) (g ^. obstacleList) ++
+  [placeWidget (V2 0 (groundHeight + 8)) ground1Widget]
 
 drawScore :: Int -> Widget Name
 drawScore n = withBorderStyle BS.unicodeBold
@@ -64,4 +64,7 @@ handleEvent g (VtyEvent (V.EvKey V.KUp [])) = continue $ dinoJump g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'q') [])) = halt g
 handleEvent g (VtyEvent (V.EvKey V.KDown [])) = continue $ dinoDuck g
 handleEvent g (VtyEvent (V.EvKey (V.KChar 'z') [])) = continue $ dinoNormal g
+handleEvent g (VtyEvent (V.EvKey (V.KEnter) [])) = continue $ gameStart g
+handleEvent g (VtyEvent (V.EvKey (V.KChar 'x') [])) = continue $ gameReady g
 handleEvent g _ = continue g
+
