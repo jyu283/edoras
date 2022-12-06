@@ -253,7 +253,7 @@ gameStart :: Game -> Game
 gameStart g = changeStateToMove (changeBoardToNormal g)
 
 gameRestart :: Game -> Game
-gameRestart = changeStateToMove . changeBoardToNormal . resetObstacle . resetTicks . resetMvmt
+gameRestart = changeStateToMove . changeBoardToNormal . resetObstacle . resetTicks . resetMvmt . resetDinoPos
 
 gameOver :: Game -> Game
 gameOver = changeStateToFreeze . changeBoardToEnd
@@ -266,6 +266,9 @@ resetTicks g = g & tick .~ 0
 
 resetMvmt :: Game -> Game
 resetMvmt g = g & dinoMvmt .~ Normal
+
+resetDinoPos :: Game -> Game
+resetDinoPos g = g & dinoPos .~ defaultDinoPos
 
 getTick :: Game -> Int
 getTick g = g ^. tick
