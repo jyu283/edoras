@@ -25,8 +25,6 @@ data Game = Game
     _tick :: Int,
     -- | position of bird
     _birdPos :: Pos,
-    -- | position of board
-    _boardPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
@@ -142,17 +140,6 @@ genObstacle g
       _ -> (V2 (groundLength + newX) groundHeight, cactus1Widget)
     newObList = (g ^. obstacleList) ++ [newOb]
 
-refreshBird :: Game -> Game
-refreshBird g
-  | g ^. isOver == 1 = g & birdPos %~ f
-  | otherwise = g
-  where
-    f (V2 x y) = V2 ((x -1) `mod` 300) y
- 
---refreshBird g = g & birdPos %~ f
---  where
---   f (V2 x y) = V2 ((x -1) `mod` 300) y
-
 refreshDino :: Game -> Game
 refreshDino g =
   if (g ^. tick `mod` 3 == 0) && (g ^. dinoMvmt == Jumping)
@@ -196,16 +183,6 @@ dinoJump g
     else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
   |otherwise = g
 
-
-
-
-
-setDinoWidgetDuck :: Game -> Game
-setDinoWidgetDuck g = g & dinoWidget .~ dino1DuckWidget
-
-setDinoWidgetNormal :: Game -> Game
-setDinoWidgetNormal g = g & dinoWidget .~ dino1Widget
-
 setDinoPosDuck :: Game -> Game
 setDinoPosDuck g = g & dinoPos .~ V2 20 (groundHeight + 5)
 
@@ -217,7 +194,6 @@ dinoDuck g
  | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
  | otherwise = g
 
-
 dinoNormal :: Game -> Game
 dinoNormal g = setDinoPosNormal (g & dinoMvmt .~ Normal)
 
@@ -226,6 +202,7 @@ changeBoard g
  | g ^. isOver == 0 =  g & boardWidget .~ normalBoardWidget
  | g ^. isOver == 1 = g & boardWidget .~ gameOverWidget
  | g ^. isOver == 2 = g & boardWidget .~ gameStartWidget
+ | otherwise = g
 
 changeStateToStart :: Game -> Game
 changeStateToStart g = g & isOver .~ 1
