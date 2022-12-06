@@ -9,7 +9,10 @@ module Emoticon
     cactus2Widget, 
     ground1Widget,
     dino1DuckWidget,
-    dino2DuckWidget,
+    gameStartWidget,
+    gameOverWidget,
+    normalBoardWidget,
+    dino2DuckWidget
   )
 where
 
@@ -85,6 +88,37 @@ dino1DuckStr = "##################   ##.#########\n    #########################
 dino1DuckWidget ::  Widget n
 dino1DuckWidget = getEmoticonWidget dino1DuckStr
 
+
+-------------------- game over board  --------------------------------------
+-- -----------------------------------------
+-- |  Game over, press Enter to restart    |
+-- |                                       |
+-- -----------------------------------------
+gameOverStr :: String
+gameOverStr = "-----------------------------------------\n|  Game over, press Enter to restart    |\n|                                       |\n-----------------------------------------"
+
+gameOverWidget :: Widget n
+gameOverWidget = getEmoticonWidget gameOverStr
+
+-------------------- game start board  --------------------------------------
+-- -----------------------------------------
+-- |  Game start, press Enter to start     |
+-- |                                       |
+-- -----------------------------------------
+gameStartStr :: String
+gameStartStr = "-----------------------------------------\n|  Game start, press Enter to start     |\n|                                       |\n-----------------------------------------"
+
+gameStartWidget :: Widget n
+gameStartWidget = getEmoticonWidget gameStartStr
+
+---------------------------normal board ----------------------
+
+normalBoardStr :: String
+normalBoardStr = "  Running T-rax  "
+
+normalBoardWidget :: Widget n
+normalBoardWidget = getEmoticonWidget normalBoardStr
+
 ----------------- 33X5 dino1----------------------------------
 -- ##################   ##.#########
 --     #############################
@@ -97,6 +131,7 @@ dino2DuckStr = "##################   ##.#########\n    #########################
 
 dino2DuckWidget ::  Widget n
 dino2DuckWidget = getEmoticonWidget dino2DuckStr
+
 
 -----------------15X9 cactus1----------------------------------
 --      (((((.
