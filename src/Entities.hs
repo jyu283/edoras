@@ -87,12 +87,33 @@ initGame = do
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle
+refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
 
 tickincr :: Game -> Game
 tickincr g = g & tick %~ incr
   where
     incr x = x + 1
+
+detectCollision :: Game -> Game
+detectCollision g = if null (g ^. obstacleList) then g else detectCollision' g
+
+detectCollision' :: Game -> Game
+detectCollision' g =
+  if noHit (g ^. dinoWidget) (g ^. dinoPos) (getFirstObstacleWidget g) (getFirstObstaclePos g) then
+    g
+  else
+    gameReady g 
+
+noHit :: Widget String -> Pos -> Widget String -> Pos -> Bool
+noHit w1 p1@(V2 x1 y1) w2 p2@(V2 x2 y2) = 
+  -- x1 + hSize w1 < x2 || x1 > x2 + hSize w1 || y1 + vSize w1 < y2 || y1 > y2 + vSize w2 
+  x1 + 24 < x2 || x1 > x2 + 15 || y1 + 5 < y2 || y1 > y2 + 8
+
+getFirstObstaclePos :: Game -> Pos
+getFirstObstaclePos g = fst (head (g ^. obstacleList))
+
+getFirstObstacleWidget :: Game -> Widget String
+getFirstObstacleWidget g = snd (head (g ^. obstacleList))
 
 refreshDinoWidget :: Game -> Game
 refreshDinoWidget g
@@ -142,7 +163,7 @@ genObstacle g
 
 refreshDino :: Game -> Game
 refreshDino g =
-  if (g ^. tick `mod` 3 == 0) && (g ^. dinoMvmt == Jumping)
+  if (g ^. tick `mod` 4 == 0) && (g ^. dinoMvmt == Jumping)
     then _refreshDino g
     else g
 
