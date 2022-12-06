@@ -2,17 +2,17 @@
 
 module Emoticon
   ( dino1Widget,
-    dino2Widget, 
+    dino2Widget,
     dino3Widget,
     cactus1Widget,
     bird1Widget,
-    cactus2Widget, 
+    cactus2Widget,
     ground1Widget,
     dino1DuckWidget,
     gameStartWidget,
     gameOverWidget,
     normalBoardWidget,
-    dino2DuckWidget
+    dino2DuckWidget,
   )
 where
 
@@ -49,7 +49,7 @@ dino1Widget = getEmoticonWidget dino1Str
 --  ##############/
 --      ##### ###
 --       ###   #.
---       #.     
+--       #.
 
 dino2Str :: String
 dino2Str = "            ##.#########\n            ############\n            ######////**\n,          ,####        \n##     #########(((     \n################        \n ##############/        \n     ##### ###          \n      ###   #.          \n      #.                "
@@ -85,23 +85,24 @@ dino3Widget = getEmoticonWidget dino3Str
 dino1DuckStr :: String
 dino1DuckStr = "##################   ##.#########\n    #############################\n      #####################////**\n       ####  ##     (((          \n       #.     #.                 "
 
-dino1DuckWidget ::  Widget n
+dino1DuckWidget :: Widget n
 dino1DuckWidget = getEmoticonWidget dino1DuckStr
-
 
 -------------------- game over board  --------------------------------------
 -- -----------------------------------------
--- |  Game over, press Enter to restart    |
+
+-- |  Game over, press X to restart        |
 -- |                                       |
 -- -----------------------------------------
 gameOverStr :: String
-gameOverStr = "-----------------------------------------\n|  Game over, press Enter to restart    |\n|                                       |\n-----------------------------------------"
+gameOverStr = "-----------------------------------------\n|  Game over, press X to restart        |\n|                                       |\n-----------------------------------------"
 
 gameOverWidget :: Widget n
 gameOverWidget = getEmoticonWidget gameOverStr
 
 -------------------- game start board  --------------------------------------
 -- -----------------------------------------
+
 -- |  Game start, press Enter to start     |
 -- |                                       |
 -- -----------------------------------------
@@ -129,9 +130,8 @@ normalBoardWidget = getEmoticonWidget normalBoardStr
 dino2DuckStr :: String
 dino2DuckStr = "##################   ##.#########\n    #############################\n      #####################////**\n       ###    ###   (((          \n         #.  #.                  "
 
-dino2DuckWidget ::  Widget n
+dino2DuckWidget :: Widget n
 dino2DuckWidget = getEmoticonWidget dino2DuckStr
-
 
 -----------------15X9 cactus1----------------------------------
 --      (((((.
@@ -150,7 +150,6 @@ cactus1Str = "     (((((.    \n     ((,(((    \n     (((((( (##\n     *((((/ ###
 cactus1Widget :: Widget n
 cactus1Widget = getEmoticonWidget cactus1Str
 
-
 -----------------24X8 bird1----------------------------------
 --           ..
 --           #@@
@@ -167,23 +166,21 @@ bird1Str = "          ..\n          #@@\n          (@@@@@\n    @@@    /@@@@@@\n#
 bird1Widget :: Widget n
 bird1Widget = getEmoticonWidget bird1Str
 
-
------------------23X13 cactus2----------------------------------         
---      *###/             
---      *###/  (#,        
---      *###/  ##,        
---      *###/  ##,        
--- ,%#% *###%%%##,        
--- ,### *###*      ##,    
--- ,### *###*      ##,    
+-----------------23X13 cactus2----------------------------------
+--      *###/
+--      *###/  (#,
+--      *###/  ##,
+--      *###/  ##,
+-- ,%#% *###%%%##,
+-- ,### *###*      ##,
+-- ,### *###*      ##,
 -- ,### *###*  ##, ##, ##*
 -- ,###%%###*  ##, ##, ##*
 --    %%%###*  ##, ##, ##*
---      ,###*   *####(((  
---      ,###*      ##.    
---      ,###*      ##.    
---  .   ,###* *   *##,.                                    
-
+--      ,###*   *####(((
+--      ,###*      ##.
+--      ,###*      ##.
+--  .   ,###* *   *##,.
 
 cactus2Str :: String
 cactus2Str = "     *###/             \n     *###/  (#,        \n     *###/  ##,        \n     *###/  ##,        \n,%#% *###%%%##,        \n,### *###*      ##,    \n,### *###*      ##,    \n,### *###*  ##, ##, ##*\n,###%%###*  ##, ##, ##*\n   %%%###*  ##, ##, ##*\n     ,###*   *####(((  \n     ,###*      ##.    \n     ,###*      ##.    \n .   ,###* *   *##,."
@@ -196,16 +193,8 @@ ground1Widget = vBox [row | _ <- [1 .. 4]]
   where
     row = str ['-' | _ <- [1 .. 200]]
 
--- a function that replaces every character a with character b in a given string, can be used to set backgroud to " " if the original emoticon has non empty backgroud
-replaceChar :: Char -> Char -> String -> String
-replaceChar a b = map replace
-  where
-    replace x
-      | x == a = b
-      | otherwise = x
-
 parseFromString :: Parser a -> String -> Either ParseError a
-parseFromString p s = runParser p () "DUMMY" s
+parseFromString p = runParser p () "DUMMY"
 
 -- break a multi-line string into a list of single line strings
 multiLineP :: Parser [String]

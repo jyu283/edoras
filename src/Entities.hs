@@ -1,6 +1,24 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, obstacleList, dinoPos, birdPos, dinoWidget,boardWidget,isOver,initGame, dinoJump, dinoDuck, dinoNormal,changeBoard,gameStart,gameReady,getTick) where
+module Entities
+  ( Game,
+    refresh,
+    groundHeight,
+    obstacleList,
+    dinoPos,
+    birdPos,
+    dinoWidget,
+    boardWidget,
+    isOver,
+    dinoJump,
+    dinoDuck,
+    dinoNormal,
+    gameStart,
+    newGame,
+    gameRestart,
+    getTick,
+  )
+where
 
 import Brick
 import Emoticon
@@ -14,8 +32,7 @@ data Movement = Ducking | Jumping | Normal deriving (Eq, Show)
 type Pos = V2 Int
 
 data Game = Game
-  {
-    -- | a list of obstacles and their positions
+  { -- | a list of obstacles and their positions
     _obstacleList :: [(Pos, Widget String)],
     -- | position of dino
     _dinoPos :: Pos,
@@ -25,8 +42,6 @@ data Game = Game
     _tick :: Int,
     -- | position of bird
     _birdPos :: Pos,
-    -- | position of board
-    _boardPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
@@ -63,33 +78,28 @@ defaultDinoPos = V2 20 groundHeight
 dinoJumpInitialVelocity :: Int
 dinoJumpInitialVelocity = -8
 
-
-
 gravity :: Int
 gravity = 1
 
-initGame :: IO Game
-initGame = do
-  let g =
-        Game
-          {
-            _obstacleList = [],
-            _dinoPos = defaultDinoPos,
-            _dinoVelocity = 0,
-            _tick = 0,
-            _birdPos = V2 250 8,
-            _dinoMvmt = Normal,
-            _randGen = mkStdGen 12345,
-            _dinoWidget = dino1Widget,
-            _boardWidget = gameStartWidget,
-            _isOver = 0,
-            _birdWidget = bird1Widget
-          }
-  return g
+newGame :: Game
+newGame =
+  Game
+    { _obstacleList = [],
+      _dinoPos = defaultDinoPos,
+      _dinoVelocity = 0,
+      _tick = 0,
+      _birdPos = V2 250 8,
+      _dinoMvmt = Normal,
+      _randGen = mkStdGen 12345,
+      _dinoWidget = dino1Widget,
+      _boardWidget = gameStartWidget,
+      _isOver = 0,
+      _birdWidget = bird1Widget
+    }
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle
+refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
 
 tickincr :: Game -> Game
 tickincr g = case g ^. isOver of
@@ -98,12 +108,34 @@ tickincr g = case g ^. isOver of
       incr x = x + 1
   _ -> g
 
+detectCollision :: Game -> Game
+detectCollision g = if g ^. isOver == 0 || null (g ^. obstacleList) then g else detectCollision' g
+
+detectCollision' :: Game -> Game
+detectCollision' g =
+  if noHit (g ^. dinoWidget) (g ^. dinoPos) (getFirstObstacleWidget g) (getFirstObstaclePos g)
+    then g
+    else gameOver g
+
+-- First version of collision detection: very basic and not aware of actual dimentions of
+-- the widgets themselves.
+noHit :: Widget String -> Pos -> Widget String -> Pos -> Bool
+noHit _ (V2 x1 y1) _ (V2 x2 y2) =
+  -- x1 + hSize w1 < x2 || x1 > x2 + hSize w1 || y1 + vSize w1 < y2 || y1 > y2 + vSize w2
+  x1 + 24 < x2 + 4 || x1 > x2 + 15 || y1 + 5 < y2 + 2 || y1 > y2 + 8
+
+getFirstObstaclePos :: Game -> Pos
+getFirstObstaclePos g = fst (head (g ^. obstacleList))
+
+getFirstObstacleWidget :: Game -> Widget String
+getFirstObstacleWidget g = snd (head (g ^. obstacleList))
+
 refreshDinoWidget :: Game -> Game
 refreshDinoWidget g
   | (g ^. dinoMvmt) /= Jumping = setRunningDinoWidget g
   | otherwise = g & dinoWidget .~ dino1Widget
   where
-    setRunningDinoWidget g
+    setRunningDinoWidget _
       | (g ^. dinoMvmt == Normal) && (g ^. tick) `mod` 14 < 7 = g & dinoWidget .~ dino2Widget
       | (g ^. dinoMvmt == Normal) && (g ^. tick) `mod` 14 >= 7 = g & dinoWidget .~ dino3Widget
       | (g ^. dinoMvmt == Ducking) && (g ^. tick) `mod` 14 < 7 = g & dinoWidget .~ dino1DuckWidget
@@ -112,8 +144,8 @@ refreshDinoWidget g
 
 refreshObstacle :: Game -> Game
 refreshObstacle g
- | g ^. isOver == 1  =   moveObstacle (deleteObstacle (genObstacle g))
- |otherwise = g
+  | g ^. isOver == 1 = moveObstacle (deleteObstacle (genObstacle g))
+  | otherwise = g
 
 moveObstacle :: Game -> Game
 moveObstacle g = g & obstacleList %~ map f
@@ -130,34 +162,23 @@ deleteObstacle g = g & obstacleList %~ f
 
 genObstacle :: Game -> Game
 genObstacle g
-  | null obList || (getV2x (fst $ last obList) < (groundLength - minObstacleDistance))
-    = g & obstacleList .~ newObList & randGen .~ newGen
+  | null obList || (getV2x (fst $ last obList) < (groundLength - minObstacleDistance)) =
+    g & obstacleList .~ newObList & randGen .~ newGen
   | otherwise = g
   where
     obList = g ^. obstacleList
     (newX, tmpGen) = randomR (0, maxObstacleDistance - minObstacleDistance) (g ^. randGen)
     (widgetIdx, newGen) = randomR (1, 3 :: Int) tmpGen
     newOb = case widgetIdx of
-      1 -> (V2 (groundLength + newX) groundHeight, cactus1Widget)         -- single cactus
-      2 -> (V2 (groundLength + newX) (groundHeight-4), cactus2Widget)     -- two cacti
-      3 -> (V2 (groundLength + newX) (groundHeight-5), g ^. birdWidget)   -- bird
+      1 -> (V2 (groundLength + newX) groundHeight, cactus1Widget) -- single cactus
+      2 -> (V2 (groundLength + newX) (groundHeight -4), cactus2Widget) -- two cacti
+      3 -> (V2 (groundLength + newX) (groundHeight -5), g ^. birdWidget) -- bird
       _ -> (V2 (groundLength + newX) groundHeight, cactus1Widget)
     newObList = (g ^. obstacleList) ++ [newOb]
 
-refreshBird :: Game -> Game
-refreshBird g
-  | g ^. isOver == 1 = g & birdPos %~ f
-  | otherwise = g
-  where
-    f (V2 x y) = V2 ((x -1) `mod` 300) y
- 
---refreshBird g = g & birdPos %~ f
---  where
---   f (V2 x y) = V2 ((x -1) `mod` 300) y
-
 refreshDino :: Game -> Game
 refreshDino g =
-  if (g ^. tick `mod` 3 == 0) && (g ^. dinoMvmt == Jumping)
+  if (g ^. tick `mod` 4 == 0) && (g ^. dinoMvmt == Jumping)
     then _refreshDino g
     else g
 
@@ -193,20 +214,11 @@ getV2y (V2 _ y) = y
 
 dinoJump :: Game -> Game
 dinoJump g
-  | g ^. isOver == 1 = if getDinoHeight g < groundHeight
-    then g
-    else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
-  |otherwise = g
-
-
-
-
-
-setDinoWidgetDuck :: Game -> Game
-setDinoWidgetDuck g = g & dinoWidget .~ dino1DuckWidget
-
-setDinoWidgetNormal :: Game -> Game
-setDinoWidgetNormal g = g & dinoWidget .~ dino1Widget
+  | g ^. isOver == 1 =
+    if getDinoHeight g < groundHeight
+      then g
+      else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
+  | otherwise = g
 
 setDinoPosDuck :: Game -> Game
 setDinoPosDuck g = g & dinoPos .~ V2 20 (groundHeight + 5)
@@ -215,34 +227,45 @@ setDinoPosNormal :: Game -> Game
 setDinoPosNormal g = g & dinoPos .~ V2 20 groundHeight
 
 dinoDuck :: Game -> Game
-dinoDuck g
- | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
- | otherwise = g
+dinoDuck g = if getDinoHeight g < groundHeight then g else dinoDuck' g
 
+dinoDuck' :: Game -> Game
+dinoDuck' g
+  | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
+  | otherwise = g
 
 dinoNormal :: Game -> Game
 dinoNormal g = setDinoPosNormal (g & dinoMvmt .~ Normal)
 
-changeBoard :: Game -> Game
-changeBoard g 
- | g ^. isOver == 0 =  g & boardWidget .~ normalBoardWidget
- | g ^. isOver == 1 = g & boardWidget .~ gameOverWidget
- | g ^. isOver == 2 = g & boardWidget .~ gameStartWidget
+changeBoardToNormal :: Game -> Game
+changeBoardToNormal g = g & boardWidget .~ normalBoardWidget
 
-changeStateToStart :: Game -> Game
-changeStateToStart g = g & isOver .~ 1
+changeBoardToEnd :: Game -> Game
+changeBoardToEnd g = g & boardWidget .~ gameOverWidget
 
-changeStateToReady :: Game -> Game
-changeStateToReady g = g & isOver .~ 0
+changeStateToMove :: Game -> Game
+changeStateToMove g = g & isOver .~ 1
+
+changeStateToFreeze :: Game -> Game
+changeStateToFreeze g = g & isOver .~ 0
 
 gameStart :: Game -> Game
-gameStart g
- | g ^. isOver == 0 = changeStateToStart  (changeBoard g)
- | otherwise = g
---gameStart = changeStateToStart . changeBoard
+gameStart g = changeStateToMove (changeBoardToNormal g)
 
-gameReady :: Game -> Game
-gameReady = changeStateToReady . changeBoard
+gameRestart :: Game -> Game
+gameRestart = changeStateToMove . changeBoardToNormal . resetObstacle . resetTicks . resetMvmt
+
+gameOver :: Game -> Game
+gameOver = changeStateToFreeze . changeBoardToEnd
+
+resetObstacle :: Game -> Game
+resetObstacle g = g & obstacleList .~ []
+
+resetTicks :: Game -> Game
+resetTicks g = g & tick .~ 0
+
+resetMvmt :: Game -> Game
+resetMvmt g = g & dinoMvmt .~ Normal
 
 getTick :: Game -> Int
 getTick g = g ^. tick
