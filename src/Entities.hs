@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities 
+module Entities
   ( Game,
     refresh,
     groundHeight,
@@ -16,8 +16,8 @@ module Entities
     gameStart,
     newGame,
     gameRestart,
-    getTick
-  ) 
+    getTick,
+  )
 where
 
 import Brick
@@ -32,8 +32,7 @@ data Movement = Ducking | Jumping | Normal deriving (Eq, Show)
 type Pos = V2 Int
 
 data Game = Game
-  {
-    -- | a list of obstacles and their positions
+  { -- | a list of obstacles and their positions
     _obstacleList :: [(Pos, Widget String)],
     -- | position of dino
     _dinoPos :: Pos,
@@ -83,26 +82,26 @@ gravity :: Int
 gravity = 1
 
 newGame :: Game
-newGame = 
-  Game {
-    _obstacleList = [],
-    _dinoPos = defaultDinoPos,
-    _dinoVelocity = 0,
-    _tick = 0,
-    _birdPos = V2 250 8,
-    _dinoMvmt = Normal,
-    _randGen = mkStdGen 12345,
-    _dinoWidget = dino1Widget,
-    _boardWidget = gameStartWidget,
-    _isOver = 0,
-    _birdWidget = bird1Widget
-  }
+newGame =
+  Game
+    { _obstacleList = [],
+      _dinoPos = defaultDinoPos,
+      _dinoVelocity = 0,
+      _tick = 0,
+      _birdPos = V2 250 8,
+      _dinoMvmt = Normal,
+      _randGen = mkStdGen 12345,
+      _dinoWidget = dino1Widget,
+      _boardWidget = gameStartWidget,
+      _isOver = 0,
+      _birdWidget = bird1Widget
+    }
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh g 
-  | g ^. isOver == 1 = tickincr  (refreshDinoWidget (refreshDino (refreshObstacle  (detectCollision g))))
-  | otherwise = tickincr  (refreshDinoWidget (refreshDino (refreshObstacle   g)))
+refresh g
+  | g ^. isOver == 1 = tickincr (refreshDinoWidget (refreshDino (refreshObstacle (detectCollision g))))
+  | otherwise = tickincr (refreshDinoWidget (refreshDino (refreshObstacle g)))
 
 tickincr :: Game -> Game
 tickincr g = case g ^. isOver of
@@ -116,15 +115,16 @@ detectCollision g = if null (g ^. obstacleList) then g else detectCollision' g
 
 detectCollision' :: Game -> Game
 detectCollision' g =
-  if noHit (g ^. dinoWidget) (g ^. dinoPos) (getFirstObstacleWidget g) (getFirstObstaclePos g) then
-    g
-  else
-    gameOver g 
+  if noHit (g ^. dinoWidget) (g ^. dinoPos) (getFirstObstacleWidget g) (getFirstObstaclePos g)
+    then g
+    else gameOver g
 
+-- First version of collision detection: very basic and not aware of actual dimentions of
+-- the widgets themselves.
 noHit :: Widget String -> Pos -> Widget String -> Pos -> Bool
-noHit w1 p1@(V2 x1 y1) w2 p2@(V2 x2 y2) = 
-  -- x1 + hSize w1 < x2 || x1 > x2 + hSize w1 || y1 + vSize w1 < y2 || y1 > y2 + vSize w2 
-  x1 + 24 < x2 || x1 > x2 + 15 || y1 + 5 < y2 || y1 > y2 + 8
+noHit _ (V2 x1 y1) _ (V2 x2 y2) =
+  -- x1 + hSize w1 < x2 || x1 > x2 + hSize w1 || y1 + vSize w1 < y2 || y1 > y2 + vSize w2
+  x1 + 24 < x2 + 4 || x1 > x2 + 15 || y1 + 5 < y2 + 2 || y1 > y2 + 8
 
 getFirstObstaclePos :: Game -> Pos
 getFirstObstaclePos g = fst (head (g ^. obstacleList))
@@ -137,7 +137,7 @@ refreshDinoWidget g
   | (g ^. dinoMvmt) /= Jumping = setRunningDinoWidget g
   | otherwise = g & dinoWidget .~ dino1Widget
   where
-    setRunningDinoWidget g
+    setRunningDinoWidget _
       | (g ^. dinoMvmt == Normal) && (g ^. tick) `mod` 14 < 7 = g & dinoWidget .~ dino2Widget
       | (g ^. dinoMvmt == Normal) && (g ^. tick) `mod` 14 >= 7 = g & dinoWidget .~ dino3Widget
       | (g ^. dinoMvmt == Ducking) && (g ^. tick) `mod` 14 < 7 = g & dinoWidget .~ dino1DuckWidget
@@ -146,8 +146,8 @@ refreshDinoWidget g
 
 refreshObstacle :: Game -> Game
 refreshObstacle g
- | g ^. isOver == 1  =   moveObstacle (deleteObstacle (genObstacle g))
- |otherwise = g
+  | g ^. isOver == 1 = moveObstacle (deleteObstacle (genObstacle g))
+  | otherwise = g
 
 moveObstacle :: Game -> Game
 moveObstacle g = g & obstacleList %~ map f
@@ -164,17 +164,17 @@ deleteObstacle g = g & obstacleList %~ f
 
 genObstacle :: Game -> Game
 genObstacle g
-  | null obList || (getV2x (fst $ last obList) < (groundLength - minObstacleDistance))
-    = g & obstacleList .~ newObList & randGen .~ newGen
+  | null obList || (getV2x (fst $ last obList) < (groundLength - minObstacleDistance)) =
+    g & obstacleList .~ newObList & randGen .~ newGen
   | otherwise = g
   where
     obList = g ^. obstacleList
     (newX, tmpGen) = randomR (0, maxObstacleDistance - minObstacleDistance) (g ^. randGen)
     (widgetIdx, newGen) = randomR (1, 3 :: Int) tmpGen
     newOb = case widgetIdx of
-      1 -> (V2 (groundLength + newX) groundHeight, cactus1Widget)         -- single cactus
-      2 -> (V2 (groundLength + newX) (groundHeight-4), cactus2Widget)     -- two cacti
-      3 -> (V2 (groundLength + newX) (groundHeight-5), g ^. birdWidget)   -- bird
+      1 -> (V2 (groundLength + newX) groundHeight, cactus1Widget) -- single cactus
+      2 -> (V2 (groundLength + newX) (groundHeight -4), cactus2Widget) -- two cacti
+      3 -> (V2 (groundLength + newX) (groundHeight -5), g ^. birdWidget) -- bird
       _ -> (V2 (groundLength + newX) groundHeight, cactus1Widget)
     newObList = (g ^. obstacleList) ++ [newOb]
 
@@ -216,10 +216,11 @@ getV2y (V2 _ y) = y
 
 dinoJump :: Game -> Game
 dinoJump g
-  | g ^. isOver == 1 = if getDinoHeight g < groundHeight
-    then g
-    else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
-  |otherwise = g
+  | g ^. isOver == 1 =
+    if getDinoHeight g < groundHeight
+      then g
+      else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
+  | otherwise = g
 
 setDinoPosDuck :: Game -> Game
 setDinoPosDuck g = g & dinoPos .~ V2 20 (groundHeight + 5)
@@ -229,8 +230,8 @@ setDinoPosNormal g = g & dinoPos .~ V2 20 groundHeight
 
 dinoDuck :: Game -> Game
 dinoDuck g
- | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
- | otherwise = g
+  | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
+  | otherwise = g
 
 dinoNormal :: Game -> Game
 dinoNormal g = setDinoPosNormal (g & dinoMvmt .~ Normal)
@@ -254,7 +255,7 @@ gameRestart :: Game -> Game
 gameRestart = changeStateToMove . changeBoardToNormal . resetObstacle . resetTicks . resetMvmt
 
 gameOver :: Game -> Game
-gameOver   =  changeStateToFreeze . changeBoardToEnd
+gameOver = changeStateToFreeze . changeBoardToEnd
 
 resetObstacle :: Game -> Game
 resetObstacle g = g & obstacleList .~ []

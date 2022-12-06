@@ -2,18 +2,18 @@ module UI (main) where
 
 import Brick
 import Brick.BChan (newBChan, writeBChan)
+import Brick.Widgets.Border as B
+import Brick.Widgets.Border.Style as BS
+import Brick.Widgets.Center as C
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
-import Entities
 import Emoticon
+import Entities
 import qualified Graphics.Vty as V
 import Graphics.Vty.Attributes (defAttr)
 import Lens.Micro ((^.))
 import Linear.V2 (V2 (..))
 
-import Brick.Widgets.Border as B
-import Brick.Widgets.Border.Style as BS
-import Brick.Widgets.Center as C
 data Tick = Tick
 
 type Name = String -- attribute name type
@@ -27,7 +27,7 @@ main = do
       threadDelay 20000 -- decides how fast your game moves
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
-  void $ customMain initialVty builder (Just chan) app newGame 
+  void $ customMain initialVty builder (Just chan) app newGame
 
 app :: App Game Tick Name
 app =
@@ -41,18 +41,19 @@ app =
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [hLimit 20 $ vBox [drawScore (getTick g)]]  ++
-  [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]  ++
-  [placeWidget (V2 50 4) (g ^. boardWidget)] ++
-  map (uncurry placeWidget) (g ^. obstacleList) ++
-  [placeWidget (V2 0 (groundHeight + 8)) ground1Widget]
+  [hLimit 20 $ vBox [drawScore (getTick g)]]
+    ++ [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]
+    ++ [placeWidget (V2 50 4) (g ^. boardWidget)]
+    ++ map (uncurry placeWidget) (g ^. obstacleList)
+    ++ [placeWidget (V2 0 (groundHeight + 8)) ground1Widget]
 
 drawScore :: Int -> Widget Name
-drawScore n = withBorderStyle BS.unicodeBold
-  $ B.borderWithLabel (str " Score ")
-  $ C.hCenter
-  $ padAll 1
-  $ str $ show n
+drawScore n =
+  withBorderStyle BS.unicodeBold $
+    B.borderWithLabel (str " Score ") $
+      C.hCenter $
+        padAll 1 $
+          str $ show n
 
 placeWidget :: V2 Int -> Widget Name -> Widget Name
 placeWidget (V2 x y) = translateBy (Location (x, y))
