@@ -8,7 +8,6 @@ import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
 import Linear.V2 (V2 (..))
 import System.Random
-import Entities (obstacleList)
 
 data Movement = Ducking | Jumping | Normal deriving (Eq, Show)
 
@@ -26,8 +25,6 @@ data Game = Game
     _tick :: Int,
     -- | position of bird
     _birdPos :: Pos,
-    -- | position of board
-    _boardPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
@@ -102,17 +99,14 @@ detectCollision g =
   if noHit (g ^. dinoWidget) (g ^. dinoPos) obsWidget obsPos then
     g
   else
-    endGame g
+    gameReady g
   where
     obsWidget = getFirstObstacleWidget g
     obsPos = getFirstObstaclePos g
 
-endGame :: Game -> Game
-endGame g = g
-
 noHit :: Widget String -> Pos -> Widget String -> Pos -> Bool
 noHit w1 p1@(V2 x1 y1) w2 p2@(V2 x2 y2) = 
-  x1 + hSize w1 || x1 > x2 + hSize w1 || y1 + vSize w1 < y2 || y1 > y2 + vSize w2 
+  (x1 + hSize w1 < x2) || (x1 > x2 + hSize w1) || (y1 + vSize w1 < y2) || (y1 > y2 + vSize w2)
 
 getFirstObstaclePos :: Game -> Pos
 getFirstObstaclePos g = fst (head (g ^. obstacleList))
@@ -165,18 +159,7 @@ genObstacle g
       3 -> (V2 (groundLength + newX) (groundHeight-5), g ^. birdWidget)   -- bird
       _ -> (V2 (groundLength + newX) groundHeight, cactus1Widget)
     newObList = (g ^. obstacleList) ++ [newOb]
-
-refreshBird :: Game -> Game
-refreshBird g
-  | g ^. isOver == 1 = g & birdPos %~ f
-  | otherwise = g
-  where
-    f (V2 x y) = V2 ((x -1) `mod` 300) y
  
---refreshBird g = g & birdPos %~ f
---  where
---   f (V2 x y) = V2 ((x -1) `mod` 300) y
-
 refreshDino :: Game -> Game
 refreshDino g =
   if (g ^. tick `mod` 3 == 0) && (g ^. dinoMvmt == Jumping)
@@ -220,16 +203,6 @@ dinoJump g
     else g & dinoVelocity .~ dinoJumpInitialVelocity & dinoMvmt .~ Jumping
   |otherwise = g
 
-
-
-
-
-setDinoWidgetDuck :: Game -> Game
-setDinoWidgetDuck g = g & dinoWidget .~ dino1DuckWidget
-
-setDinoWidgetNormal :: Game -> Game
-setDinoWidgetNormal g = g & dinoWidget .~ dino1Widget
-
 setDinoPosDuck :: Game -> Game
 setDinoPosDuck g = g & dinoPos .~ V2 20 (groundHeight + 5)
 
@@ -241,15 +214,14 @@ dinoDuck g
  | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
  | otherwise = g
 
-
 dinoNormal :: Game -> Game
 dinoNormal g = setDinoPosNormal (g & dinoMvmt .~ Normal)
 
 changeBoard :: Game -> Game
 changeBoard g 
- | g ^. isOver == 0 =  g & boardWidget .~ normalBoardWidget
  | g ^. isOver == 1 = g & boardWidget .~ gameOverWidget
  | g ^. isOver == 2 = g & boardWidget .~ gameStartWidget
+ | otherwise =  g & boardWidget .~ normalBoardWidget
 
 changeStateToStart :: Game -> Game
 changeStateToStart g = g & isOver .~ 1
