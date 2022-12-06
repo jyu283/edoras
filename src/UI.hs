@@ -4,8 +4,8 @@ import Brick
 import Brick.BChan (newBChan, writeBChan)
 import Control.Concurrent (forkIO, threadDelay)
 import Control.Monad (forever, void)
-import Emoticon (cactus1Widget, cactus2Widget, dino1Widget, bird1Widget, ground1Widget,dino1DuckWidget,gameStartWidget,gameOverWidget,normalBoardWidget)
 import Entities
+import Emoticon
 import qualified Graphics.Vty as V
 import Graphics.Vty.Attributes (defAttr)
 import Lens.Micro ((^.))
@@ -22,10 +22,9 @@ main = do
     forever $ do
       writeBChan chan Tick
       threadDelay 20000 -- decides how fast your game moves
-  g <- initGame
   let builder = V.mkVty V.defaultConfig
   initialVty <- builder
-  void $ customMain initialVty builder (Just chan) app g
+  void $ customMain initialVty builder (Just chan) app newGame 
 
 app :: App Game Tick Name
 app =

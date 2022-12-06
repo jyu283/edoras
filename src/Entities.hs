@@ -1,6 +1,24 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, obstacleList, dinoPos, birdPos, dinoWidget,boardWidget,isOver,initGame, dinoJump, dinoDuck, dinoNormal,changeBoard,gameStart,gameReady) where
+module Entities 
+  ( Game,
+    refresh,
+    groundHeight,
+    obstacleList,
+    dinoPos,
+    birdPos,
+    dinoWidget,
+    boardWidget,
+    isOver,
+    dinoJump,
+    dinoDuck,
+    dinoNormal,
+    changeBoard,
+    gameStart,
+    gameReady,
+    newGame
+  ) 
+where
 
 import Brick
 import Emoticon
@@ -66,24 +84,21 @@ dinoJumpInitialVelocity = -8
 gravity :: Int
 gravity = 1
 
-initGame :: IO Game
-initGame = do
-  let g =
-        Game
-          {
-            _obstacleList = [],
-            _dinoPos = defaultDinoPos,
-            _dinoVelocity = 0,
-            _tick = 0,
-            _birdPos = V2 250 8,
-            _dinoMvmt = Normal,
-            _randGen = mkStdGen 12345,
-            _dinoWidget = dino1Widget,
-            _boardWidget = gameStartWidget,
-            _isOver = 0,
-            _birdWidget = bird1Widget
-          }
-  return g
+newGame :: Game
+newGame = 
+  Game {
+    _obstacleList = [],
+    _dinoPos = defaultDinoPos,
+    _dinoVelocity = 0,
+    _tick = 0,
+    _birdPos = V2 250 8,
+    _dinoMvmt = Normal,
+    _randGen = mkStdGen 12345,
+    _dinoWidget = dino1Widget,
+    _boardWidget = gameStartWidget,
+    _isOver = 0,
+    _birdWidget = bird1Widget
+  }
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
@@ -233,13 +248,8 @@ changeStateToReady g = g & isOver .~ 0
 
 gameStart :: Game -> Game
 gameStart g
- | g ^. isOver == 0 = changeStateToStart  (changeBoard g)
+ | g ^. isOver == 0 = changeStateToStart  (changeBoard newGame)
  | otherwise = g
---gameStart = changeStateToStart . changeBoard
 
 gameReady :: Game -> Game
 gameReady = changeStateToReady . changeBoard
-
-
-
-
