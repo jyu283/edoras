@@ -248,7 +248,7 @@ changeStateToReady g = g & isOver .~ 0
 
 gameStart :: Game -> Game
 gameStart g
- | g ^. isOver == 0 = changeStateToStart  (changeBoard newGame)
+ | g ^. isOver == 0 = changeStateToStart  (changeBoard g)
  | otherwise = g
 
 gameReady :: Game -> Game
