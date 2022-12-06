@@ -16,7 +16,7 @@ module Entities
     gameStart,
     newGame,
     gameRestart,
-    getTick,
+    getScore,
   )
 where
 
@@ -270,5 +270,5 @@ resetMvmt g = g & dinoMvmt .~ Normal
 resetDinoPos :: Game -> Game
 resetDinoPos g = g & dinoPos .~ defaultDinoPos
 
-getTick :: Game -> Int
-getTick g = g ^. tick
+getScore :: Game -> Int
+getScore g = (g ^. tick) `div` 4

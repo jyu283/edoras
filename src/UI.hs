@@ -41,7 +41,7 @@ app =
 
 drawUI :: Game -> [Widget Name]
 drawUI g =
-  [hLimit 20 $ vBox [drawScore (getTick g)]]
+  [hLimit 20 $ vBox [drawScore (getScore g)]]
     ++ [placeWidget (g ^. dinoPos) (g ^. dinoWidget)]
     ++ [placeWidget (V2 50 4) (g ^. boardWidget)]
     ++ map (uncurry placeWidget) (g ^. obstacleList)
