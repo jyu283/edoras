@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Entities (Game, refresh, groundHeight, obstacleList, dinoPos, birdPos, dinoWidget,boardWidget,isOver,initGame, dinoJump, dinoDuck, dinoNormal,changeBoard,gameStart,gameReady) where
+module Entities (Game, refresh, groundHeight, obstacleList, dinoPos, birdPos, dinoWidget,boardWidget,isOver,initGame, dinoJump, dinoDuck, dinoNormal,changeBoard,gameStart,gameReady,getTick) where
 
 import Brick
 import Emoticon
@@ -92,9 +92,11 @@ refresh :: Game -> Game
 refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle
 
 tickincr :: Game -> Game
-tickincr g = g & tick %~ incr
-  where
-    incr x = x + 1
+tickincr g = case g ^. isOver of
+  1 -> g & tick %~ incr
+    where
+      incr x = x + 1
+  _ -> g
 
 refreshDinoWidget :: Game -> Game
 refreshDinoWidget g
@@ -242,6 +244,5 @@ gameStart g
 gameReady :: Game -> Game
 gameReady = changeStateToReady . changeBoard
 
-
-
-
+getTick :: Game -> Int
+getTick g = g ^. tick
