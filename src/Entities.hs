@@ -13,10 +13,9 @@ module Entities
     dinoJump,
     dinoDuck,
     dinoNormal,
-    changeBoard,
     gameStart,
-    gameReady,
-    newGame
+    newGame,
+    gameRestart
   ) 
 where
 
@@ -102,7 +101,10 @@ newGame =
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
-refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
+refresh g 
+  | g ^. isOver == 1 = tickincr  (refreshDinoWidget (refreshDino (refreshObstacle  (detectCollision g))))
+  | otherwise = tickincr  (refreshDinoWidget (refreshDino (refreshObstacle   g)))
+--refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
 
 tickincr :: Game -> Game
 tickincr g = g & tick %~ incr
@@ -117,7 +119,7 @@ detectCollision' g =
   if noHit (g ^. dinoWidget) (g ^. dinoPos) (getFirstObstacleWidget g) (getFirstObstaclePos g) then
     g
   else
-    gameReady g 
+    gameOver g 
 
 noHit :: Widget String -> Pos -> Widget String -> Pos -> Bool
 noHit w1 p1@(V2 x1 y1) w2 p2@(V2 x2 y2) = 
@@ -233,23 +235,29 @@ dinoDuck g
 dinoNormal :: Game -> Game
 dinoNormal g = setDinoPosNormal (g & dinoMvmt .~ Normal)
 
-changeBoard :: Game -> Game
-changeBoard g 
- | g ^. isOver == 0 =  g & boardWidget .~ normalBoardWidget
- | g ^. isOver == 1 = g & boardWidget .~ gameOverWidget
- | g ^. isOver == 2 = g & boardWidget .~ gameStartWidget
- | otherwise = g
+changeBoardToNormal :: Game -> Game
+changeBoardToNormal g = g & boardWidget .~ normalBoardWidget
 
-changeStateToStart :: Game -> Game
-changeStateToStart g = g & isOver .~ 1
+changeBoardToEnd :: Game -> Game
+changeBoardToEnd g = g & boardWidget .~ gameOverWidget
 
-changeStateToReady :: Game -> Game
-changeStateToReady g = g & isOver .~ 0
+changeBoardToReady :: Game -> Game
+changeBoardToReady g =  g & boardWidget .~ gameStartWidget
+
+changeStateToMove :: Game -> Game
+changeStateToMove g = g & isOver .~ 1
+
+changeStateToFreeze :: Game -> Game
+changeStateToFreeze g = g & isOver .~ 0
 
 gameStart :: Game -> Game
-gameStart g
- | g ^. isOver == 0 = changeStateToStart  (changeBoard g)
- | otherwise = g
+gameStart g = changeStateToMove (changeBoardToNormal g)
 
-gameReady :: Game -> Game
-gameReady = changeStateToReady . changeBoard
+gameRestart :: Game -> Game
+gameRestart = changeStateToMove . changeBoardToNormal . resetObstacle
+
+gameOver :: Game -> Game
+gameOver   =  changeStateToFreeze . changeBoardToEnd
+
+resetObstacle :: Game -> Game
+resetObstacle g = g & obstacleList .~ []
