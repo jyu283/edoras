@@ -229,7 +229,10 @@ setDinoPosNormal :: Game -> Game
 setDinoPosNormal g = g & dinoPos .~ V2 20 groundHeight
 
 dinoDuck :: Game -> Game
-dinoDuck g
+dinoDuck g = if getDinoHeight g < groundHeight then g else dinoDuck' g
+
+dinoDuck' :: Game -> Game
+dinoDuck' g
   | g ^. isOver == 1 = setDinoPosDuck (g & dinoMvmt .~ Ducking)
   | otherwise = g
 
