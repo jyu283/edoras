@@ -15,7 +15,8 @@ module Entities
     dinoNormal,
     gameStart,
     newGame,
-    gameRestart
+    gameRestart,
+    getTick
   ) 
 where
 
@@ -107,9 +108,11 @@ refresh g
 --refresh = tickincr . refreshDinoWidget . refreshDino . refreshObstacle . detectCollision
 
 tickincr :: Game -> Game
-tickincr g = g & tick %~ incr
-  where
-    incr x = x + 1
+tickincr g = case g ^. isOver of
+  1 -> g & tick %~ incr
+    where
+      incr x = x + 1
+  _ -> g
 
 detectCollision :: Game -> Game
 detectCollision g = if null (g ^. obstacleList) then g else detectCollision' g
@@ -261,3 +264,6 @@ gameOver   =  changeStateToFreeze . changeBoardToEnd
 
 resetObstacle :: Game -> Game
 resetObstacle g = g & obstacleList .~ []
+
+getTick :: Game -> Int
+getTick g = g ^. tick
