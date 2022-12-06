@@ -115,7 +115,7 @@ gameStartWidget = getEmoticonWidget gameStartStr
 ---------------------------normal board ----------------------
 
 normalBoardStr :: String
-normalBoardStr = "  Running T-rax  "
+normalBoardStr = ""
 
 normalBoardWidget :: Widget n
 normalBoardWidget = getEmoticonWidget normalBoardStr
