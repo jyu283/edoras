@@ -257,13 +257,19 @@ gameStart :: Game -> Game
 gameStart g = changeStateToMove (changeBoardToNormal g)
 
 gameRestart :: Game -> Game
-gameRestart = changeStateToMove . changeBoardToNormal . resetObstacle
+gameRestart = changeStateToMove . changeBoardToNormal . resetObstacle . resetTicks . resetMvmt
 
 gameOver :: Game -> Game
 gameOver   =  changeStateToFreeze . changeBoardToEnd
 
 resetObstacle :: Game -> Game
 resetObstacle g = g & obstacleList .~ []
+
+resetTicks :: Game -> Game
+resetTicks g = g & tick .~ 0
+
+resetMvmt :: Game -> Game
+resetMvmt g = g & dinoMvmt .~ Normal
 
 getTick :: Game -> Int
 getTick g = g ^. tick
