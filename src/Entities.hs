@@ -1,4 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Entities
   ( Game,
@@ -22,7 +24,9 @@ module Entities
     defaultDinoPos,
     genGame,
     getTick,
-    tickincr
+    tickincr, 
+    groundLength, 
+    maxObstacleDistance
   )
 where
 
@@ -33,6 +37,7 @@ import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
 import Linear.V2 (V2 (..))
 import System.Random
+
 
 data Movement = Ducking | Jumping | Normal deriving (Eq, Show)
 
@@ -61,9 +66,22 @@ data Game = Game
     _birdWidget :: Widget String
   }
 
---deriving (Show)
+
 
 makeLenses ''Game -- What's this for?
+
+-- instance Show [(Pos, Widget String)] where
+--   show :: [(Pos, Widget String)] -> String
+--   show [] = ""
+--   show ((pos, w):rest) = (show pos) ++ show (rest)
+
+instance Show (Widget String) where
+  show :: (Widget String) -> String
+  show w = ""
+
+instance Show Game where
+  show :: Game -> String
+  show g = "Game:\n"++("obstacleList: " ++ show (g ^. obstacleList) ++ "\n")++("dinoPos: " ++ show (g ^. dinoPos) ++ "\n") ++ ("dinoVelocity: " ++ show (g ^. dinoVelocity) ++ "\n") ++ ("tick: " ++ show (g ^. tick) ++ "\n") ++ ("randGen: " ++ show (g ^. randGen) ++ "\n")
 
 groundHeight :: Int
 groundHeight = 27
@@ -104,7 +122,7 @@ newGame =
 -- FIXME: This isn't working
 genGame :: Gen Game
 genGame = do
-  ticks <- chooseInt (0, 1000000000)
+  ticks <- chooseInt (0, 100000)
   velocity <- chooseInt (0, 10)
   mvt <- elements [Ducking, Jumping, Normal]
   over <- chooseInt (0, 1)
