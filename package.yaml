@@ -46,6 +46,7 @@ library:
     - vty
     - parsec
     - MonadRandom
+    - QuickCheck
 
 
 executables:
@@ -70,3 +71,8 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - edoras
+      - linear
+      - random
+      - QuickCheck
+      - microlens
+      - microlens-th

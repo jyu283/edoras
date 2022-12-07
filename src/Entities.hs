@@ -2,11 +2,11 @@
 
 module Entities
   ( Game,
+    Pos,
     refresh,
     groundHeight,
     obstacleList,
     dinoPos,
-    birdPos,
     dinoWidget,
     boardWidget,
     isOver,
@@ -17,10 +17,17 @@ module Entities
     newGame,
     gameRestart,
     getScore,
+    getV2x,
+    getV2y,
+    defaultDinoPos,
+    genGame,
+    getTick,
+    tickincr
   )
 where
 
 import Brick
+import Test.QuickCheck
 import Emoticon
 import Lens.Micro ((%~), (&), (.~), (^.))
 import Lens.Micro.TH (makeLenses)
@@ -40,8 +47,6 @@ data Game = Game
     _dinoVelocity :: Int,
     -- | game ticks
     _tick :: Int,
-    -- | position of bird
-    _birdPos :: Pos,
     -- | movement of dino
     _dinoMvmt :: Movement,
     -- | psudo random number generator
@@ -88,7 +93,6 @@ newGame =
       _dinoPos = defaultDinoPos,
       _dinoVelocity = 0,
       _tick = 0,
-      _birdPos = V2 250 8,
       _dinoMvmt = Normal,
       _randGen = mkStdGen 12345,
       _dinoWidget = dino1Widget,
@@ -96,6 +100,26 @@ newGame =
       _isOver = 0,
       _birdWidget = bird1Widget
     }
+
+-- FIXME: This isn't working
+genGame :: Gen Game
+genGame = do
+  ticks <- chooseInt (0, 1000000000)
+  velocity <- chooseInt (0, 10)
+  mvt <- elements [Ducking, Jumping, Normal]
+  over <- chooseInt (0, 1)
+  return (Game
+    { _obstacleList = [],
+      _dinoPos = defaultDinoPos,
+      _dinoVelocity = velocity,
+      _tick = ticks,
+      _dinoMvmt = mvt,
+      _randGen = mkStdGen 12345,
+      _dinoWidget = dino1Widget,
+      _boardWidget = gameStartWidget,
+      _isOver = over,
+      _birdWidget = bird1Widget
+    })
 
 -- Refresh game states on each tick
 refresh :: Game -> Game
@@ -272,3 +296,6 @@ resetDinoPos g = g & dinoPos .~ defaultDinoPos
 
 getScore :: Game -> Int
 getScore g = (g ^. tick) `div` 4
+
+getTick :: Game -> Int
+getTick g = g ^. tick
